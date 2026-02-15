@@ -1,27 +1,40 @@
-import type { Metadata } from 'next';
-import Link from 'next/link';
 import './globals.css';
+import type { Metadata } from 'next';
+import { Header } from '@/components/layout/header';
 
 export const metadata: Metadata = {
-  title: 'Snipy Reset',
-  description: 'Reset stable frontend'
+  title: 'SportBot AI - AI-Powered Sports Betting Analytics',
+  description: '2 hours of research in 60 seconds. Get AI-powered predictions and betting insights',
+  openGraph: {
+    images: [
+      {
+        url: 'https://bolt.new/static/og_default.png',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    images: [
+      {
+        url: 'https://bolt.new/static/og_default.png',
+      },
+    ],
+  },
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <html lang="fr">
-      <body>
-        <header className="border-b border-slate-800 bg-slate-900/90">
-          <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4">
-            <h1 className="text-lg font-black text-white">SnipyClubVip</h1>
-            <nav className="flex gap-2 text-sm">
-              <Link className="rounded-md border border-slate-700 px-3 py-1.5 hover:bg-slate-800" href="/fenetres">Fenetres</Link>
-              <Link className="rounded-md border border-slate-700 px-3 py-1.5 hover:bg-slate-800" href="/browse">Browse</Link>
-              <Link className="rounded-md border border-slate-700 px-3 py-1.5 hover:bg-slate-800" href="/matches">Matches</Link>
-            </nav>
-          </div>
-        </header>
-        <main className="mx-auto max-w-7xl px-4 py-6">{children}</main>
+    <html lang="en" className="dark">
+      <body className="bg-[#0a0a0b] text-gray-100 antialiased">
+        <div className="fixed inset-0 bg-gradient-to-b from-[#1a1a2e]/20 via-transparent to-transparent pointer-events-none" />
+        <div className="relative z-10">
+          <Header />
+          {children}
+        </div>
       </body>
     </html>
   );
