@@ -4,7 +4,44 @@ import * as React from 'react';
 import Link from 'next/link';
 import { GlassCard } from '@/components/ui/glass-card';
 
-type ApiMatch = {
+type MatchDetailFields = {
+  signals?: string;
+  placedBets?: string;
+  otherPredictions?: string;
+  realScore?: string;
+  moneyline1?: string;
+  moneyline2?: string;
+  moneylineDraw?: string;
+  predictedScore1?: string;
+  probability1?: string;
+  predictedScore2?: string;
+  probability2?: string;
+  confidence?: string;
+  publicMl1?: string;
+  publicMl2?: string;
+  publicMlDraw?: string;
+  publicSpread1?: string;
+  publicSpread2?: string;
+  publicTotalOver?: string;
+  publicTotalUnder?: string;
+  allPublicPct1?: string;
+  allPublicTeam1?: string;
+  publicRatio1?: string;
+  allPublicPct2?: string;
+  allPublicTeam2?: string;
+  publicRatio2?: string;
+  allPublicPctDraw?: string;
+  allCashPct1?: string;
+  allCashTeam1?: string;
+  cashRatio1?: string;
+  allCashPct2?: string;
+  allCashTeam2?: string;
+  cashRatio2?: string;
+  allCashPctDraw?: string;
+  allCashDraw?: string;
+};
+
+type ApiMatch = MatchDetailFields & {
   id: string;
   externalRef: string | null;
   sport: string;
@@ -16,9 +53,9 @@ type ApiMatch = {
 };
 
 type FallbackData = {
-  source: string;
+  sources: string[];
   count: number;
-  matches: Array<{
+  matches: Array<MatchDetailFields & {
     sport: string;
     league: string;
     homeTeam: string;
@@ -58,6 +95,8 @@ const fmtDate = (value: string) =>
     minute: '2-digit'
   });
 
+const showValue = (value?: string) => (value && value.trim() ? value : '-');
+
 export default function Home() {
   const [loading, setLoading] = React.useState(true);
   const [selectedSport, setSelectedSport] = React.useState('ALL');
@@ -90,13 +129,14 @@ export default function Home() {
           }
         }
 
-        const fallbackResponse = await fetch('/data/game-monitor-page2.json', { cache: 'no-store' });
+        const fallbackResponse = await fetch('/data/game-monitor-all.json', { cache: 'no-store' });
         if (!fallbackResponse.ok) return;
         const fallback = (await fallbackResponse.json()) as FallbackData;
         const nowIso = new Date().toISOString();
         const fallbackMatches: ApiMatch[] = fallback.matches.map((m, index) => ({
           id: `fallback-${index}`,
           externalRef: null,
+          ...m,
           sport: m.sport,
           league: m.league,
           homeTeam: m.homeTeam,
@@ -312,6 +352,105 @@ export default function Home() {
               <div className="rounded-lg border border-white/10 bg-white/5 p-3">
                 <p className="text-xs uppercase text-gray-400">Equipe Extérieur</p>
                 <p className="mt-1 text-sm text-white">{selectedMatch.awayTeam}</p>
+              </div>
+            </div>
+
+            <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <div className="rounded-lg border border-white/10 bg-white/5 p-3">
+                <p className="text-xs uppercase text-gray-400">Moneyline 1</p>
+                <p className="mt-1 text-sm text-white">{showValue(selectedMatch.moneyline1)}</p>
+              </div>
+              <div className="rounded-lg border border-white/10 bg-white/5 p-3">
+                <p className="text-xs uppercase text-gray-400">Moneyline Draw</p>
+                <p className="mt-1 text-sm text-white">{showValue(selectedMatch.moneylineDraw)}</p>
+              </div>
+              <div className="rounded-lg border border-white/10 bg-white/5 p-3">
+                <p className="text-xs uppercase text-gray-400">Moneyline 2</p>
+                <p className="mt-1 text-sm text-white">{showValue(selectedMatch.moneyline2)}</p>
+              </div>
+            </div>
+
+            <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <div className="rounded-lg border border-white/10 bg-white/5 p-3">
+                <p className="text-xs uppercase text-gray-400">Prediction Team 1</p>
+                <p className="mt-1 text-sm text-white">
+                  {showValue(selectedMatch.predictedScore1)} ({showValue(selectedMatch.probability1)}%)
+                </p>
+              </div>
+              <div className="rounded-lg border border-white/10 bg-white/5 p-3">
+                <p className="text-xs uppercase text-gray-400">Prediction Team 2</p>
+                <p className="mt-1 text-sm text-white">
+                  {showValue(selectedMatch.predictedScore2)} ({showValue(selectedMatch.probability2)}%)
+                </p>
+              </div>
+              <div className="rounded-lg border border-white/10 bg-white/5 p-3">
+                <p className="text-xs uppercase text-gray-400">Confidence</p>
+                <p className="mt-1 text-sm text-cyan-300">{showValue(selectedMatch.confidence)}%</p>
+              </div>
+            </div>
+
+            <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <div className="rounded-lg border border-white/10 bg-white/5 p-3">
+                <p className="text-xs uppercase text-gray-400">Public ML</p>
+                <p className="mt-1 text-sm text-white">
+                  1 {showValue(selectedMatch.publicMl1)}% | X {showValue(selectedMatch.publicMlDraw)}% | 2 {showValue(selectedMatch.publicMl2)}%
+                </p>
+              </div>
+              <div className="rounded-lg border border-white/10 bg-white/5 p-3">
+                <p className="text-xs uppercase text-gray-400">Public Spread</p>
+                <p className="mt-1 text-sm text-white">
+                  T1 {showValue(selectedMatch.publicSpread1)}% | T2 {showValue(selectedMatch.publicSpread2)}%
+                </p>
+              </div>
+              <div className="rounded-lg border border-white/10 bg-white/5 p-3">
+                <p className="text-xs uppercase text-gray-400">Public Total</p>
+                <p className="mt-1 text-sm text-white">
+                  Over {showValue(selectedMatch.publicTotalOver)}% | Under {showValue(selectedMatch.publicTotalUnder)}%
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div className="rounded-lg border border-white/10 bg-white/5 p-3">
+                <p className="text-xs uppercase text-gray-400">All Public / Ratios</p>
+                <p className="mt-1 text-sm text-white">
+                  T1 {showValue(selectedMatch.allPublicPct1)}% ({showValue(selectedMatch.publicRatio1)})
+                </p>
+                <p className="text-sm text-white">
+                  T2 {showValue(selectedMatch.allPublicPct2)}% ({showValue(selectedMatch.publicRatio2)})
+                </p>
+                <p className="text-sm text-white">Draw {showValue(selectedMatch.allPublicPctDraw)}%</p>
+              </div>
+              <div className="rounded-lg border border-white/10 bg-white/5 p-3">
+                <p className="text-xs uppercase text-gray-400">All Cash / Ratios</p>
+                <p className="mt-1 text-sm text-white">
+                  T1 {showValue(selectedMatch.allCashPct1)}% ({showValue(selectedMatch.cashRatio1)}) - {showValue(selectedMatch.allCashTeam1)}
+                </p>
+                <p className="text-sm text-white">
+                  T2 {showValue(selectedMatch.allCashPct2)}% ({showValue(selectedMatch.cashRatio2)}) - {showValue(selectedMatch.allCashTeam2)}
+                </p>
+                <p className="text-sm text-white">
+                  Draw {showValue(selectedMatch.allCashPctDraw)}% - {showValue(selectedMatch.allCashDraw)}
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div className="rounded-lg border border-white/10 bg-white/5 p-3">
+                <p className="text-xs uppercase text-gray-400">Signals</p>
+                <p className="mt-1 text-sm text-white">{showValue(selectedMatch.signals)}</p>
+              </div>
+              <div className="rounded-lg border border-white/10 bg-white/5 p-3">
+                <p className="text-xs uppercase text-gray-400">Placed Bets</p>
+                <p className="mt-1 text-sm text-white">{showValue(selectedMatch.placedBets)}</p>
+              </div>
+              <div className="rounded-lg border border-white/10 bg-white/5 p-3">
+                <p className="text-xs uppercase text-gray-400">Other Predictions</p>
+                <p className="mt-1 text-sm text-white">{showValue(selectedMatch.otherPredictions)}</p>
+              </div>
+              <div className="rounded-lg border border-white/10 bg-white/5 p-3">
+                <p className="text-xs uppercase text-gray-400">Real Score</p>
+                <p className="mt-1 text-sm text-white">{showValue(selectedMatch.realScore)}</p>
               </div>
             </div>
           </div>
