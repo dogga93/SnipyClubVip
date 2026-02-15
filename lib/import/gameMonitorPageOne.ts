@@ -8,6 +8,7 @@ import { readFile } from 'node:fs/promises';
 type ImportSummary = {
   file: string;
   rows: number;
+  uniqueRows: number;
   importedMatches: number;
   insertedMarketSnapshots: number;
   insertedPublicCashSnapshots: number;
@@ -15,6 +16,7 @@ type ImportSummary = {
 };
 
 const DEFAULT_FILES = [
+  '/Users/hammamimac/Downloads/Game Monitor SOCCER 2026-02-15 page 2.xlsx',
   '/Users/hammamimac/Downloads/Game Monitor SOCCER 2026-02-15 page 1.xlsx',
   '/Users/hammamimac/Downloads/Game Monitor SOCCER 2026-02-15 page 1-2.xlsx',
   '/Users/hammamimac/Downloads/Game Monitor SOCCER 2026-02-15 page 1-3.xlsx'
@@ -100,6 +102,9 @@ const unique = <T,>(arr: T[]) => [...new Set(arr)];
 export const importGameMonitorPageOneFiles = async (input?: { files?: string[] }) => {
   const files = unique(resolveFileCandidates(input?.files));
   const summaries: ImportSummary[] = [];
+  const marketKeys = new Set<string>();
+  const publicCashKeys = new Set<string>();
+  const analysisKeys = new Set<string>();
 
   for (const filePath of files) {
     let workbook: XLSX.WorkBook;
@@ -115,19 +120,29 @@ export const importGameMonitorPageOneFiles = async (input?: { files?: string[] }
     if (!sheet) continue;
 
     const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: null, raw: false });
+    const fileDate = pickDateFromFilename(filePath);
+    const uniqueRows = new Map<string, Record<string, unknown>>();
+
+    for (const row of rows) {
+      const league = clean(row['League']);
+      const game = parseGame(row['Game']);
+      if (!league || !game) continue;
+      const key = normalizeKey(league, game.home, game.away, fileDate);
+      uniqueRows.set(key, row);
+    }
 
     let importedMatches = 0;
     let insertedMarketSnapshots = 0;
     let insertedPublicCashSnapshots = 0;
     let insertedAnalysisSnapshots = 0;
 
-    for (const row of rows) {
+    for (const row of uniqueRows.values()) {
       const sport = clean(row['Sport']) || 'SOCCER';
       const league = clean(row['League']);
       const game = parseGame(row['Game']);
       if (!league || !game) continue;
 
-      const startTime = pickDateFromFilename(filePath);
+      const startTime = fileDate;
       const status = clean(row['Status']) || 'Scheduled';
       const externalRef = normalizeKey(league, game.home, game.away, startTime);
 
@@ -165,33 +180,41 @@ export const importGameMonitorPageOneFiles = async (input?: { files?: string[] }
         const odd = parseFloatSafe(row[side.oddCol]);
         if (odd == null || odd <= 0) continue;
 
-        await prisma.marketSnapshot.create({
-          data: {
-            matchId: match.id,
-            marketType: 'ML',
-            side: side.side,
-            book: 'game-monitor',
-            openOdds: null,
-            currentOdds: odd,
-            ts
-          }
-        });
-        insertedMarketSnapshots += 1;
+        const marketKey = `${match.id}|${side.side}|${odd.toFixed(4)}`;
+        if (!marketKeys.has(marketKey)) {
+          await prisma.marketSnapshot.create({
+            data: {
+              matchId: match.id,
+              marketType: 'ML',
+              side: side.side,
+              book: 'game-monitor',
+              openOdds: null,
+              currentOdds: odd,
+              ts
+            }
+          });
+          marketKeys.add(marketKey);
+          insertedMarketSnapshots += 1;
+        }
 
         const publicPercent = parsePct(row[side.publicCol]);
         const cashPercent = parsePct(row[side.cashPctCol]);
 
-        await prisma.publicCashSnapshot.create({
-          data: {
-            matchId: match.id,
-            marketType: 'ML',
-            side: side.side,
-            publicPercent,
-            cashPercent,
-            ts
-          }
-        });
-        insertedPublicCashSnapshots += 1;
+        const publicCashKey = `${match.id}|${side.side}|${publicPercent ?? 'na'}|${cashPercent ?? 'na'}`;
+        if (!publicCashKeys.has(publicCashKey)) {
+          await prisma.publicCashSnapshot.create({
+            data: {
+              matchId: match.id,
+              marketType: 'ML',
+              side: side.side,
+              publicPercent,
+              cashPercent,
+              ts
+            }
+          });
+          publicCashKeys.add(publicCashKey);
+          insertedPublicCashSnapshots += 1;
+        }
 
         let modelProb: number;
         if (side.modelCol) {
@@ -233,31 +256,35 @@ export const importGameMonitorPageOneFiles = async (input?: { files?: string[] }
           sideSignal ? `Cash amount hint: ${sideSignal}` : ''
         ].filter(Boolean).slice(0, 6);
 
-        await prisma.analysisSnapshot.create({
-          data: {
-            matchId: match.id,
-            marketType: 'ML',
-            side: side.side,
-            modelProb,
-            impliedProb: computed.impliedProb,
-            edge: computed.edge,
-            fairOdds: computed.fairOdds,
-            sharpScore: computed.sharpScore,
-            marketPressure: computed.marketPressure,
-            trapRisk: computed.trapRisk,
-            verdict: computed.verdict,
-            reasons,
-            ts
-          }
-        });
-
-        insertedAnalysisSnapshots += 1;
+        const analysisKey = `${match.id}|${side.side}|${computed.verdict}|${computed.edge.toFixed(6)}|${modelProb.toFixed(6)}`;
+        if (!analysisKeys.has(analysisKey)) {
+          await prisma.analysisSnapshot.create({
+            data: {
+              matchId: match.id,
+              marketType: 'ML',
+              side: side.side,
+              modelProb,
+              impliedProb: computed.impliedProb,
+              edge: computed.edge,
+              fairOdds: computed.fairOdds,
+              sharpScore: computed.sharpScore,
+              marketPressure: computed.marketPressure,
+              trapRisk: computed.trapRisk,
+              verdict: computed.verdict,
+              reasons,
+              ts
+            }
+          });
+          analysisKeys.add(analysisKey);
+          insertedAnalysisSnapshots += 1;
+        }
       }
     }
 
     summaries.push({
       file: filePath,
       rows: rows.length,
+      uniqueRows: uniqueRows.size,
       importedMatches,
       insertedMarketSnapshots,
       insertedPublicCashSnapshots,
