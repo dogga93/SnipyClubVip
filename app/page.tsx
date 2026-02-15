@@ -3,6 +3,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { GlassCard } from '@/components/ui/glass-card';
+import { Search } from 'lucide-react';
 
 type MatchDetailFields = {
   stars?: string;
@@ -61,8 +62,10 @@ type FallbackData = {
   matches: Array<MatchDetailFields & {
     sport: string;
     league: string;
-    homeTeam: string;
-    awayTeam: string;
+    game?: string;
+    homeTeam?: string;
+    awayTeam?: string;
+    startTime?: string;
     status: string;
   }>;
 };
@@ -99,6 +102,21 @@ const fmtDate = (value: string) =>
   });
 
 const showValue = (value?: string) => (value && value.trim() ? value : '-');
+const splitGameTeams = (game?: string) => {
+  const value = (game ?? '').trim();
+  if (!value) return { homeTeam: '', awayTeam: '' };
+  const separators = [' vs ', ' VS ', ' v ', ' - ', ' @ '];
+  for (const sep of separators) {
+    if (value.includes(sep)) {
+      const [home, away] = value.split(sep);
+      return {
+        homeTeam: (home ?? '').trim(),
+        awayTeam: (away ?? '').trim()
+      };
+    }
+  }
+  return { homeTeam: value, awayTeam: '' };
+};
 
 export default function Home() {
   const [loading, setLoading] = React.useState(true);
@@ -106,6 +124,7 @@ export default function Home() {
   const [selectedLeague, setSelectedLeague] = React.useState<string | null>(null);
   const [selectedMatch, setSelectedMatch] = React.useState<ApiMatch | null>(null);
   const [matches, setMatches] = React.useState<ApiMatch[]>([]);
+  const [searchQuery, setSearchQuery] = React.useState('');
   const [manual, setManual] = React.useState<ManualMatch>(defaultManual);
   const [saved, setSaved] = React.useState(false);
 
@@ -136,17 +155,20 @@ export default function Home() {
         if (!fallbackResponse.ok) return;
         const fallback = (await fallbackResponse.json()) as FallbackData;
         const nowIso = new Date().toISOString();
-        const fallbackMatches: ApiMatch[] = fallback.matches.map((m, index) => ({
-          id: `fallback-${index}`,
-          externalRef: null,
-          ...m,
-          sport: m.sport,
-          league: m.league,
-          homeTeam: m.homeTeam,
-          awayTeam: m.awayTeam,
-          startTime: nowIso,
-          status: m.status || 'Scheduled'
-        }));
+        const fallbackMatches: ApiMatch[] = fallback.matches.map((m, index) => {
+          const parsed = splitGameTeams(m.game);
+          return {
+            id: `fallback-${index}`,
+            externalRef: null,
+            ...m,
+            sport: m.sport,
+            league: m.league,
+            homeTeam: (m.homeTeam || parsed.homeTeam || 'Team 1').trim(),
+            awayTeam: (m.awayTeam || parsed.awayTeam || 'Team 2').trim(),
+            startTime: m.startTime || nowIso,
+            status: m.status || 'Scheduled'
+          };
+        });
         setMatches(fallbackMatches);
       } finally {
         setLoading(false);
@@ -172,9 +194,20 @@ export default function Home() {
   }, [dedupedMatches]);
 
   const filteredMatches = React.useMemo(() => {
-    if (selectedSport === 'ALL') return dedupedMatches;
-    return dedupedMatches.filter((m) => m.sport.toUpperCase() === selectedSport);
-  }, [dedupedMatches, selectedSport]);
+    const sportFiltered =
+      selectedSport === 'ALL'
+        ? dedupedMatches
+        : dedupedMatches.filter((m) => m.sport.toUpperCase() === selectedSport);
+
+    if (!searchQuery.trim()) return sportFiltered;
+    const query = searchQuery.toLowerCase();
+    return sportFiltered.filter(
+      (m) =>
+        m.league.toLowerCase().includes(query) ||
+        m.homeTeam.toLowerCase().includes(query) ||
+        m.awayTeam.toLowerCase().includes(query)
+    );
+  }, [dedupedMatches, selectedSport, searchQuery]);
 
   React.useEffect(() => {
     setSelectedLeague(null);
@@ -204,93 +237,85 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen py-8">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-6 flex flex-wrap gap-2">
-          {sports.map((sport) => (
+    <main className="flex h-screen overflow-hidden">
+      <aside className="w-64 border-r border-white/10 bg-black/20 backdrop-blur-sm">
+        <div className="border-b border-white/10 p-4">
+          <h2 className="bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-lg font-bold text-transparent">
+            Ligues
+          </h2>
+          <p className="mt-1 text-xs text-gray-500">{leagues.length} ligues</p>
+        </div>
+        <div className="h-[calc(100vh-80px)] space-y-1 overflow-y-auto p-2">
+          {leagues.map((league) => (
             <button
-              key={sport}
-              onClick={() => setSelectedSport(sport)}
-              className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
-                selectedSport === sport
-                  ? 'border-cyan-400 bg-cyan-500/15 text-cyan-300'
-                  : 'border-white/10 bg-white/5 text-gray-300 hover:bg-white/10'
+              key={league.name}
+              onClick={() => setSelectedLeague((prev) => (prev === league.name ? null : league.name))}
+              className={`w-full rounded-lg border px-3 py-2 text-left transition ${
+                selectedLeague === league.name
+                  ? 'border-cyan-500/50 bg-cyan-500/10 text-cyan-300'
+                  : 'border-transparent text-gray-300 hover:border-cyan-500/30 hover:bg-white/5'
               }`}
             >
-              {sport}
+              <p className="truncate text-sm font-medium">{league.name}</p>
+              <p className="text-xs text-gray-500">{league.count} matchs</p>
             </button>
           ))}
+          {leagues.length === 0 && !loading && (
+            <p className="px-2 text-sm text-gray-400">Aucune ligue disponible.</p>
+          )}
         </div>
+      </aside>
 
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-          <aside className="lg:col-span-3">
-            <GlassCard className="p-4" hover={false}>
-              <h2 className="mb-3 text-sm font-bold uppercase tracking-widest text-cyan-300">
-                Ligues
-              </h2>
-              <div className="max-h-[560px] space-y-2 overflow-auto pr-1">
-                {leagues.map((league) => (
+      <section className="flex-1 overflow-y-auto">
+        <div className="container mx-auto max-w-7xl space-y-6 p-8">
+          <div className="space-y-2">
+            <h1 className="bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-4xl font-bold text-transparent">
+              Sports Analytics Terminal
+            </h1>
+            <p className="text-gray-400">
+              Plateforme de pronostic avec filtrage par sport, ligue et details complets match.
+            </p>
+          </div>
+
+          <GlassCard className="p-4" hover={false}>
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                <input
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Rechercher ligue ou equipe..."
+                  className="w-full rounded-lg border border-white/10 bg-white/5 py-2 pl-10 pr-3 text-sm text-white placeholder:text-gray-500"
+                />
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {sports.map((sport) => (
                   <button
-                    key={league.name}
-                    onClick={() =>
-                      setSelectedLeague((prev) => (prev === league.name ? null : league.name))
-                    }
-                    className={`flex w-full items-center justify-between rounded-lg border px-3 py-2 text-left ${
-                      selectedLeague === league.name
-                        ? 'border-cyan-400 bg-cyan-500/15'
-                        : 'border-white/10 bg-white/5'
+                    key={sport}
+                    onClick={() => setSelectedSport(sport)}
+                    className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
+                      selectedSport === sport
+                        ? 'border-cyan-400 bg-cyan-500/15 text-cyan-300'
+                        : 'border-white/10 bg-white/5 text-gray-300 hover:bg-white/10'
                     }`}
                   >
-                    <span className="text-sm text-gray-200">{league.name}</span>
-                    <span className="rounded bg-cyan-500/15 px-2 py-0.5 text-xs text-cyan-300">
-                      {league.count}
-                    </span>
+                    {sport}
                   </button>
                 ))}
-                {leagues.length === 0 && !loading && (
-                  <p className="text-sm text-gray-400">Aucune ligue disponible.</p>
-                )}
               </div>
-            </GlassCard>
-          </aside>
+            </div>
+          </GlassCard>
 
-          <section className="space-y-6 lg:col-span-9">
-            <GlassCard className="p-5" hover={false}>
+          <div className="grid grid-cols-1 gap-6 xl:grid-cols-12">
+            <GlassCard className="xl:col-span-8 p-5" hover={false}>
               <div className="mb-4 flex items-center justify-between">
-                <h1 className="text-lg font-bold text-white">Plaque Match Du Jour (manuel)</h1>
-                <button
-                  onClick={saveManual}
-                  className="rounded-lg bg-cyan-500/20 px-3 py-1.5 text-sm font-semibold text-cyan-300 hover:bg-cyan-500/30"
-                >
-                  Enregistrer
-                </button>
-              </div>
-
-              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                <input className="rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-sm" placeholder="Sport" value={manual.sport} onChange={(e) => setManual((v) => ({ ...v, sport: e.target.value }))} />
-                <input className="rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-sm" placeholder="Ligue" value={manual.league} onChange={(e) => setManual((v) => ({ ...v, league: e.target.value }))} />
-                <input className="rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-sm" placeholder="Equipe domicile" value={manual.homeTeam} onChange={(e) => setManual((v) => ({ ...v, homeTeam: e.target.value }))} />
-                <input className="rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-sm" placeholder="Equipe extérieur" value={manual.awayTeam} onChange={(e) => setManual((v) => ({ ...v, awayTeam: e.target.value }))} />
-                <input className="rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-sm" placeholder="Heure (ex: 20:45)" value={manual.kickOff} onChange={(e) => setManual((v) => ({ ...v, kickOff: e.target.value }))} />
-                <input className="rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-sm" placeholder="Pick + confiance" value={manual.pick} onChange={(e) => setManual((v) => ({ ...v, pick: e.target.value }))} />
-              </div>
-              <p className="mt-3 text-xs text-gray-400">
-                {saved ? 'Sauvegardé.' : 'Cette plaque est modifiable manuellement et sauvegardée localement.'}
-              </p>
-            </GlassCard>
-
-            <GlassCard className="p-5" hover={false}>
-              <div className="mb-4 flex items-center justify-between">
-                <h2 className="text-lg font-bold text-white">
-                  {selectedLeague
-                    ? `Matchs de ${selectedLeague}`
-                    : 'Matchs Ordonnés (sans doublons)'}
+                <h2 className="text-xl font-bold text-white">
+                  {selectedLeague ? `Matchs de ${selectedLeague}` : 'Tous les matchs disponibles'}
                 </h2>
                 <Link href="/matches" className="text-sm text-cyan-300 hover:text-cyan-200">
-                  Vue complète
+                  Vue complete
                 </Link>
               </div>
-
               {loading ? (
                 <p className="text-sm text-gray-400">Chargement des matchs...</p>
               ) : (
@@ -301,23 +326,46 @@ export default function Home() {
                       onClick={() => setSelectedMatch(match)}
                       className="grid w-full grid-cols-12 items-center rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-left text-sm hover:border-cyan-400/40 hover:bg-cyan-500/10"
                     >
-                      <div className="col-span-3 text-gray-300">{match.league}</div>
+                      <div className="col-span-3 truncate text-gray-300">{match.league}</div>
                       <div className="col-span-5 text-white">
-                        {match.homeTeam} vs {match.awayTeam}
+                        {match.homeTeam} {match.awayTeam ? `vs ${match.awayTeam}` : ''}
                       </div>
-                      <div className="col-span-2 text-gray-300">{fmtDate(match.startTime)}</div>
-                      <div className="col-span-2 text-right text-cyan-300">{match.status}</div>
+                      <div className="col-span-2 text-xs text-gray-300">{fmtDate(match.startTime)}</div>
+                      <div className="col-span-2 text-right text-cyan-300">{match.status || '-'}</div>
                     </button>
                   ))}
                   {todayMatches.length === 0 && (
-                    <p className="text-sm text-gray-400">Aucun match disponible pour ce sport.</p>
+                    <p className="text-sm text-gray-400">Aucun match disponible pour ce filtre.</p>
                   )}
                 </div>
               )}
             </GlassCard>
-          </section>
+
+            <GlassCard className="xl:col-span-4 p-5" hover={false}>
+              <div className="mb-4 flex items-center justify-between">
+                <h2 className="text-lg font-bold text-white">Plaque Match Du Jour</h2>
+                <button
+                  onClick={saveManual}
+                  className="rounded-lg bg-cyan-500/20 px-3 py-1.5 text-sm font-semibold text-cyan-300 hover:bg-cyan-500/30"
+                >
+                  Enregistrer
+                </button>
+              </div>
+              <div className="grid grid-cols-1 gap-3">
+                <input className="rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-sm" placeholder="Sport" value={manual.sport} onChange={(e) => setManual((v) => ({ ...v, sport: e.target.value }))} />
+                <input className="rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-sm" placeholder="Ligue" value={manual.league} onChange={(e) => setManual((v) => ({ ...v, league: e.target.value }))} />
+                <input className="rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-sm" placeholder="Equipe domicile" value={manual.homeTeam} onChange={(e) => setManual((v) => ({ ...v, homeTeam: e.target.value }))} />
+                <input className="rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-sm" placeholder="Equipe exterieur" value={manual.awayTeam} onChange={(e) => setManual((v) => ({ ...v, awayTeam: e.target.value }))} />
+                <input className="rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-sm" placeholder="Heure (ex: 20:45)" value={manual.kickOff} onChange={(e) => setManual((v) => ({ ...v, kickOff: e.target.value }))} />
+                <input className="rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-sm" placeholder="Pick + confiance" value={manual.pick} onChange={(e) => setManual((v) => ({ ...v, pick: e.target.value }))} />
+              </div>
+              <p className="mt-3 text-xs text-gray-400">
+                {saved ? 'Sauvegarde locale effectuee.' : 'Formulaire manuel pour le match du jour.'}
+              </p>
+            </GlassCard>
+          </div>
         </div>
-      </div>
+      </section>
 
       {selectedMatch && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
