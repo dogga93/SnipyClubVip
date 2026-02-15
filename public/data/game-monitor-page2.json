@@ -1,0 +1,909 @@
+{
+  "source": "Game Monitor SOCCER 2026-02-15 page 2.xlsx",
+  "count": 129,
+  "matches": [
+    {
+      "sport": "SOCCER",
+      "league": "Belgium Jupiler League",
+      "homeTeam": "Royale Union SG",
+      "awayTeam": "St. Liege",
+      "status": "InPlay"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Italy Serie A",
+      "homeTeam": "Juventus",
+      "awayTeam": "Inter",
+      "status": "InPlay"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "England FA Cup",
+      "homeTeam": "Brighton",
+      "awayTeam": "Liverpool",
+      "status": "InPlay"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Spain Primera Division",
+      "homeTeam": "Real Sociedad",
+      "awayTeam": "Real Madrid",
+      "status": "InPlay"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Portugal Primeira Liga",
+      "homeTeam": "Braga",
+      "awayTeam": "Gil Vicente",
+      "status": "InPlay"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Colombia Primera A",
+      "homeTeam": "Llaneros",
+      "awayTeam": "Millonarios",
+      "status": "InPlay"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Argentina Primera B National",
+      "homeTeam": "Temperley",
+      "awayTeam": "Tristan Suarez",
+      "status": "InPlay"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Colombia Torneo Aguila",
+      "homeTeam": "Envigado",
+      "awayTeam": "Inter Palmira",
+      "status": "InPlay"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Colombia Torneo Aguila",
+      "homeTeam": "U. Magdalena",
+      "awayTeam": "Leones",
+      "status": "InPlay"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Venezuela Primera Division",
+      "homeTeam": "Trujillanos",
+      "awayTeam": "Dep. Tachira",
+      "status": "InPlay"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Argentina Liga Profesional",
+      "homeTeam": "Sarmiento Junin",
+      "awayTeam": "Atl. Huracan",
+      "status": "InPlay"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Argentina Primera B National",
+      "homeTeam": "Deportivo Madryn",
+      "awayTeam": "Colon Santa FE",
+      "status": "InPlay"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Costa Rica Primera Division",
+      "homeTeam": "San Carlos",
+      "awayTeam": "Guadalupe",
+      "status": "InPlay"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "El Salvador Primera Division",
+      "homeTeam": "Fuerte San Francisco",
+      "awayTeam": "Municipal Limeno",
+      "status": "InPlay"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "El Salvador Primera Division",
+      "homeTeam": "Hercules (El Salvador)",
+      "awayTeam": "Inter F.A.",
+      "status": "InPlay"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Mexico Primera Division",
+      "homeTeam": "Atlas",
+      "awayTeam": "Pachuca",
+      "status": "InPlay"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Mexico Primera Division",
+      "homeTeam": "Querétaro",
+      "awayTeam": "Atl. San Luis",
+      "status": "InPlay"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Angola Girabola",
+      "homeTeam": "Wiliet",
+      "awayTeam": "CD Lunda Sul",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Cameroon Elite One",
+      "homeTeam": "Aigle Royal",
+      "awayTeam": "Victoria United",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Cameroon Elite One",
+      "homeTeam": "Dynamo Douala",
+      "awayTeam": "Stade Renard",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Cameroon Elite One",
+      "homeTeam": "Panthere",
+      "awayTeam": "Bamenda",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Croatia First Division",
+      "homeTeam": "Vukovar 1991",
+      "awayTeam": "Gorica",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Cyprus First Division",
+      "homeTeam": "APOEL",
+      "awayTeam": "Achnas",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "England FA Cup",
+      "homeTeam": "Fulham",
+      "awayTeam": "Stoke City",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "England FA Cup",
+      "homeTeam": "Sunderland",
+      "awayTeam": "Oxford Utd",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "England Premier League 2",
+      "homeTeam": "West Brom U21",
+      "awayTeam": "Liverpool U21",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "France Ligue 1",
+      "homeTeam": "Toulouse",
+      "awayTeam": "Le Havre",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Italy Serie A",
+      "homeTeam": "Genoa",
+      "awayTeam": "Cremonese",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Italy Serie A",
+      "homeTeam": "Verona",
+      "awayTeam": "Parma",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Italy Serie B",
+      "homeTeam": "Frosinone",
+      "awayTeam": "Spezia",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Italy Serie B",
+      "homeTeam": "Juve Stabia",
+      "awayTeam": "Monza",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Italy Serie B",
+      "homeTeam": "Sudtirol",
+      "awayTeam": "Bari",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Morocco Botola 2",
+      "homeTeam": "Jeunesse Sportive Soualem",
+      "awayTeam": "Chabab Benguerir",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Morocco Botola 2",
+      "homeTeam": "Moghreb Tetouan",
+      "awayTeam": "Stade Marocain",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Morocco Botola 2",
+      "homeTeam": "Mouloudia Oujda",
+      "awayTeam": "Wydad Fes",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Morocco Botola 2",
+      "homeTeam": "US Boujaad",
+      "awayTeam": "RAC Casablanca",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Nigeria NPFL",
+      "homeTeam": "Plateau United",
+      "awayTeam": "El Kanemi",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Scotland Premiership",
+      "homeTeam": "Celtic",
+      "awayTeam": "Kilmarnock",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Slovenia Prva Liga",
+      "homeTeam": "Maribor",
+      "awayTeam": "Primorje",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Turkey Super Lig",
+      "homeTeam": "Kayserispor",
+      "awayTeam": "Goztepe",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "World World Club Friendly",
+      "homeTeam": "Pakhtakor",
+      "awayTeam": "Rubin Kazan",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "World World Club Friendly",
+      "homeTeam": "Petrocub",
+      "awayTeam": "Riga FC",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "World World Club Friendly",
+      "homeTeam": "Rodina Moscow",
+      "awayTeam": "Sochi",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "World World Club Friendly",
+      "homeTeam": "Sundsvall",
+      "awayTeam": "Ostersund",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Angola Girabola",
+      "homeTeam": "Sagrada",
+      "awayTeam": "Primeiro de Maio",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Czech Republic Gambrinus League",
+      "homeTeam": "Ostrava",
+      "awayTeam": "Liberec",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Czech Republic Gambrinus League",
+      "homeTeam": "Teplice",
+      "awayTeam": "Mlada Boleslav",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Germany Bundesliga",
+      "homeTeam": "Heidenheim",
+      "awayTeam": "Augsburg",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Hungary OTP Bank Liga",
+      "homeTeam": "Nyiregyhaza",
+      "awayTeam": "Kazincbarcikai",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Nigeria NPFL",
+      "homeTeam": "Nasarawa",
+      "awayTeam": "Katsina Utd",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Scotland Premiership",
+      "homeTeam": "Aberdeen",
+      "awayTeam": "Motherwell",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Slovakia Corgon Liga",
+      "homeTeam": "Dun. Streda",
+      "awayTeam": "Komarno",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Angola Girabola",
+      "homeTeam": "Bravos do Maquis",
+      "awayTeam": "Guelson",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Angola Girabola",
+      "homeTeam": "Sao Salvador",
+      "awayTeam": "Luanda City",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Belgium Jupiler League",
+      "homeTeam": "Westerlo",
+      "awayTeam": "Antwerp",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Belgium Proximus League",
+      "homeTeam": "OC Charleroi",
+      "awayTeam": "Gent U23",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Belgium Proximus League",
+      "homeTeam": "Waasland-Beveren",
+      "awayTeam": "Francs Borains",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Bulgaria Parva Liga",
+      "homeTeam": "Botev Plovdiv",
+      "awayTeam": "Levski",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Cameroon Elite One",
+      "homeTeam": "Fortuna Mfou",
+      "awayTeam": "Gazelle",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Chile Primera Division",
+      "homeTeam": "D. Concepcion",
+      "awayTeam": "U. De Concepcion",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Denmark Superliga",
+      "homeTeam": "Midtjylland",
+      "awayTeam": "Odense",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Ghana Premier League",
+      "homeTeam": "Heart of Lions",
+      "awayTeam": "Berekum Chelsea",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Ghana Premier League",
+      "homeTeam": "Holy Stars",
+      "awayTeam": "Bibiani Gold Stars",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Ghana Premier League",
+      "homeTeam": "Karela",
+      "awayTeam": "Dreams",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Ghana Premier League",
+      "homeTeam": "Nations FC",
+      "awayTeam": "Hohoe United",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Ghana Premier League",
+      "homeTeam": "Samartex",
+      "awayTeam": "Swedru All Blacks",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Ghana Premier League",
+      "homeTeam": "Young Apostles",
+      "awayTeam": "Bechem United",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Morocco Botola Pro",
+      "homeTeam": "COD Meknes",
+      "awayTeam": "Hassania Agadir",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Nigeria NPFL",
+      "homeTeam": "Abia Warriors",
+      "awayTeam": "Remo Stars",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Nigeria NPFL",
+      "homeTeam": "Bendel",
+      "awayTeam": "Bayelsa United",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Nigeria NPFL",
+      "homeTeam": "Ikorodu City",
+      "awayTeam": "Enyimba",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Nigeria NPFL",
+      "homeTeam": "Kano Pillars",
+      "awayTeam": "Kwara",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Nigeria NPFL",
+      "homeTeam": "Rivers United",
+      "awayTeam": "Niger Tornadoes",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Nigeria NPFL",
+      "homeTeam": "Warri Wolves",
+      "awayTeam": "Shooting",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Nigeria NPFL",
+      "homeTeam": "Wikki Tourist",
+      "awayTeam": "Rangers Int'l",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Portugal Liga 3",
+      "homeTeam": "Academica",
+      "awayTeam": "Amarante",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Portugal Liga 3",
+      "homeTeam": "Covilha",
+      "awayTeam": "Amora",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Portugal Liga 3",
+      "homeTeam": "Lusitano GC",
+      "awayTeam": "Atletico CP",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Portugal Revelacao U23",
+      "homeTeam": "Braga U23",
+      "awayTeam": "Famalicao U23",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Romania Liga I",
+      "homeTeam": "FC Rapid Bucuresti",
+      "awayTeam": "Farul Constanta",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Spain Primera RFEF - Group 1",
+      "homeTeam": "Arenteiro",
+      "awayTeam": "CF Talavera",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Spain Primera RFEF - Group 1",
+      "homeTeam": "Guadalajara",
+      "awayTeam": "Lugo",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Spain Primera RFEF - Group 2",
+      "homeTeam": "Sabadell",
+      "awayTeam": "UD Ibiza-Eivissa",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Spain Segunda RFEF - Group 5",
+      "homeTeam": "Conquense",
+      "awayTeam": "CD Coria",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "World World Club Friendly",
+      "homeTeam": "Enkopings SK",
+      "awayTeam": "AFC United",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "World World Club Friendly",
+      "homeTeam": "Molde",
+      "awayTeam": "Brattvag",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Spain Primera Division",
+      "homeTeam": "Atl. Madrid",
+      "awayTeam": "Rayo Vallecano",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Spain Segunda Division",
+      "homeTeam": "Ceuta",
+      "awayTeam": "Huesca",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Spain Segunda Division",
+      "homeTeam": "Santander",
+      "awayTeam": "Eibar",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Saudi Arabia Division 1",
+      "homeTeam": "Al-Ula",
+      "awayTeam": "Al Draih",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Germany 3. Liga",
+      "homeTeam": "Alemannia Aachen",
+      "awayTeam": "Ulm",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Greece Super League",
+      "homeTeam": "OFI Crete",
+      "awayTeam": "Kifisias",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Portugal Primeira Liga",
+      "homeTeam": "FC Porto",
+      "awayTeam": "Nacional",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Spain Segunda RFEF - Group 2",
+      "homeTeam": "SD Logrones",
+      "awayTeam": "Ebro",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Switzerland Super League",
+      "homeTeam": "Lugano",
+      "awayTeam": "Basel",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Switzerland Super League",
+      "homeTeam": "Servette Geneve FC",
+      "awayTeam": "Lausanne",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Netherlands Eredivisie",
+      "homeTeam": "Nijmegen",
+      "awayTeam": "Sparta Rotterdam",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Austria Tipico Bundesliga",
+      "homeTeam": "Rapid Vienna",
+      "awayTeam": "Austria Vienna",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Cameroon Elite One",
+      "homeTeam": "Aigle Moungo",
+      "awayTeam": "Colombe Lobo",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Portugal Liga 3",
+      "homeTeam": "1º Dezembro",
+      "awayTeam": "Caldas",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Spain Segunda RFEF - Group 1",
+      "homeTeam": "Dep. Fabril",
+      "awayTeam": "Marino de Luanco",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Spain Segunda RFEF - Group 1",
+      "homeTeam": "Lealtad",
+      "awayTeam": "UD Samano",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Spain Segunda RFEF - Group 1",
+      "homeTeam": "Rayo Cantabria",
+      "awayTeam": "Bergantinos",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Spain Segunda RFEF - Group 1",
+      "homeTeam": "Salamanca",
+      "awayTeam": "Real Avila",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Spain Segunda RFEF - Group 1",
+      "homeTeam": "Valladolid Promesas",
+      "awayTeam": "Coruxo FC",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Spain Segunda RFEF - Group 2",
+      "homeTeam": "Alfaro",
+      "awayTeam": "Utebo FC",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Spain Segunda RFEF - Group 2",
+      "homeTeam": "Zaragoza B",
+      "awayTeam": "UD Logrones",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Spain Segunda RFEF - Group 3",
+      "homeTeam": "Espanyol B",
+      "awayTeam": "Olot",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Spain Segunda RFEF - Group 4",
+      "homeTeam": "Deportiva Minera",
+      "awayTeam": "Jaen",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Spain Segunda RFEF - Group 4",
+      "homeTeam": "Xerez D.F.C.",
+      "awayTeam": "Puente Genil",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Spain Segunda RFEF - Group 5",
+      "homeTeam": "Orihuela",
+      "awayTeam": "RSD Alcala",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Turkey 1. Lig",
+      "homeTeam": "Sariyer",
+      "awayTeam": "Pendikspor",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "France Ligue 1",
+      "homeTeam": "Angers",
+      "awayTeam": "Lorient",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "France Ligue 1",
+      "homeTeam": "Auxerre",
+      "awayTeam": "Metz",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Italy Serie B",
+      "homeTeam": "Reggiana",
+      "awayTeam": "Empoli",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "England FA Cup",
+      "homeTeam": "Wigan",
+      "awayTeam": "Arsenal",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Germany Bundesliga",
+      "homeTeam": "Wolfsburg",
+      "awayTeam": "RB Leipzig",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Italy Lega Pro - Group C",
+      "homeTeam": "Arzignano",
+      "awayTeam": "AlbinoLeffe",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Italy Lega Pro - Group C",
+      "homeTeam": "Giana Erminio",
+      "awayTeam": "Lumezzane",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Italy Lega Pro - Group C",
+      "homeTeam": "Pro Patria",
+      "awayTeam": "Trento",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Mauritania Ligue 1",
+      "homeTeam": "Chemal",
+      "awayTeam": "Nouadhibou",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Mauritania Ligue 1",
+      "homeTeam": "Pompiers",
+      "awayTeam": "Nzeidane",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Poland Ekstraklasa",
+      "homeTeam": "Piast Gliwice",
+      "awayTeam": "Lech Poznan",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Scotland Premiership",
+      "homeTeam": "Hearts",
+      "awayTeam": "Rangers",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Slovenia Prva Liga",
+      "homeTeam": "Radomlje",
+      "awayTeam": "Koper",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Spain Segunda RFEF - Group 2",
+      "homeTeam": "R. Union",
+      "awayTeam": "Sestao",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "World World Club Friendly",
+      "homeTeam": "Sandnes",
+      "awayTeam": "Raufoss",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Croatia First Division",
+      "homeTeam": "Hajduk Split",
+      "awayTeam": "Osijek",
+      "status": "Scheduled"
+    },
+    {
+      "sport": "SOCCER",
+      "league": "Hungary OTP Bank Liga",
+      "homeTeam": "Kisvarda",
+      "awayTeam": "Gyor",
+      "status": "Scheduled"
+    }
+  ]
+}

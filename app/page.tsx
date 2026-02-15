@@ -15,6 +15,18 @@ type ApiMatch = {
   status: string;
 };
 
+type FallbackData = {
+  source: string;
+  count: number;
+  matches: Array<{
+    sport: string;
+    league: string;
+    homeTeam: string;
+    awayTeam: string;
+    status: string;
+  }>;
+};
+
 type ManualMatch = {
   sport: string;
   league: string;
@@ -68,9 +80,29 @@ export default function Home() {
     const load = async () => {
       try {
         const response = await fetch('/api/matches?limit=500', { cache: 'no-store' });
-        if (!response.ok) return;
-        const data = (await response.json()) as { matches?: ApiMatch[] };
-        setMatches(data.matches ?? []);
+        if (response.ok) {
+          const data = (await response.json()) as { matches?: ApiMatch[] };
+          if ((data.matches ?? []).length > 0) {
+            setMatches(data.matches ?? []);
+            return;
+          }
+        }
+
+        const fallbackResponse = await fetch('/data/game-monitor-page2.json', { cache: 'no-store' });
+        if (!fallbackResponse.ok) return;
+        const fallback = (await fallbackResponse.json()) as FallbackData;
+        const nowIso = new Date().toISOString();
+        const fallbackMatches: ApiMatch[] = fallback.matches.map((m, index) => ({
+          id: `fallback-${index}`,
+          externalRef: null,
+          sport: m.sport,
+          league: m.league,
+          homeTeam: m.homeTeam,
+          awayTeam: m.awayTeam,
+          startTime: nowIso,
+          status: m.status || 'Scheduled'
+        }));
+        setMatches(fallbackMatches);
       } finally {
         setLoading(false);
       }
