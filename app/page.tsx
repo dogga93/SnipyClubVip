@@ -61,6 +61,8 @@ const fmtDate = (value: string) =>
 export default function Home() {
   const [loading, setLoading] = React.useState(true);
   const [selectedSport, setSelectedSport] = React.useState('ALL');
+  const [selectedLeague, setSelectedLeague] = React.useState<string | null>(null);
+  const [selectedMatch, setSelectedMatch] = React.useState<ApiMatch | null>(null);
   const [matches, setMatches] = React.useState<ApiMatch[]>([]);
   const [manual, setManual] = React.useState<ManualMatch>(defaultManual);
   const [saved, setSaved] = React.useState(false);
@@ -131,6 +133,10 @@ export default function Home() {
     return dedupedMatches.filter((m) => m.sport.toUpperCase() === selectedSport);
   }, [dedupedMatches, selectedSport]);
 
+  React.useEffect(() => {
+    setSelectedLeague(null);
+  }, [selectedSport]);
+
   const leagues = React.useMemo(() => {
     const map = new Map<string, number>();
     for (const match of filteredMatches) {
@@ -141,7 +147,12 @@ export default function Home() {
       .map(([name, count]) => ({ name, count }));
   }, [filteredMatches]);
 
-  const todayMatches = filteredMatches.slice(0, 20);
+  const leagueMatches = React.useMemo(() => {
+    if (!selectedLeague) return filteredMatches;
+    return filteredMatches.filter((m) => m.league === selectedLeague);
+  }, [filteredMatches, selectedLeague]);
+
+  const todayMatches = leagueMatches.slice(0, 40);
 
   const saveManual = () => {
     localStorage.setItem(MANUAL_KEY, JSON.stringify(manual));
@@ -176,15 +187,22 @@ export default function Home() {
               </h2>
               <div className="max-h-[560px] space-y-2 overflow-auto pr-1">
                 {leagues.map((league) => (
-                  <div
+                  <button
                     key={league.name}
-                    className="flex items-center justify-between rounded-lg border border-white/10 bg-white/5 px-3 py-2"
+                    onClick={() =>
+                      setSelectedLeague((prev) => (prev === league.name ? null : league.name))
+                    }
+                    className={`flex w-full items-center justify-between rounded-lg border px-3 py-2 text-left ${
+                      selectedLeague === league.name
+                        ? 'border-cyan-400 bg-cyan-500/15'
+                        : 'border-white/10 bg-white/5'
+                    }`}
                   >
                     <span className="text-sm text-gray-200">{league.name}</span>
                     <span className="rounded bg-cyan-500/15 px-2 py-0.5 text-xs text-cyan-300">
                       {league.count}
                     </span>
-                  </div>
+                  </button>
                 ))}
                 {leagues.length === 0 && !loading && (
                   <p className="text-sm text-gray-400">Aucune ligue disponible.</p>
@@ -220,7 +238,11 @@ export default function Home() {
 
             <GlassCard className="p-5" hover={false}>
               <div className="mb-4 flex items-center justify-between">
-                <h2 className="text-lg font-bold text-white">Matchs Ordonnés (sans doublons)</h2>
+                <h2 className="text-lg font-bold text-white">
+                  {selectedLeague
+                    ? `Matchs de ${selectedLeague}`
+                    : 'Matchs Ordonnés (sans doublons)'}
+                </h2>
                 <Link href="/matches" className="text-sm text-cyan-300 hover:text-cyan-200">
                   Vue complète
                 </Link>
@@ -231,9 +253,10 @@ export default function Home() {
               ) : (
                 <div className="space-y-2">
                   {todayMatches.map((match) => (
-                    <div
+                    <button
                       key={`${match.id}-${match.startTime}`}
-                      className="grid grid-cols-12 items-center rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm"
+                      onClick={() => setSelectedMatch(match)}
+                      className="grid w-full grid-cols-12 items-center rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-left text-sm hover:border-cyan-400/40 hover:bg-cyan-500/10"
                     >
                       <div className="col-span-3 text-gray-300">{match.league}</div>
                       <div className="col-span-5 text-white">
@@ -241,7 +264,7 @@ export default function Home() {
                       </div>
                       <div className="col-span-2 text-gray-300">{fmtDate(match.startTime)}</div>
                       <div className="col-span-2 text-right text-cyan-300">{match.status}</div>
-                    </div>
+                    </button>
                   ))}
                   {todayMatches.length === 0 && (
                     <p className="text-sm text-gray-400">Aucun match disponible pour ce sport.</p>
@@ -252,6 +275,48 @@ export default function Home() {
           </section>
         </div>
       </div>
+
+      {selectedMatch && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+          <div className="w-full max-w-2xl rounded-xl border border-white/10 bg-[#0f1115] p-5 shadow-2xl">
+            <div className="mb-4 flex items-start justify-between gap-3">
+              <div>
+                <h3 className="text-xl font-bold text-white">
+                  {selectedMatch.homeTeam} vs {selectedMatch.awayTeam}
+                </h3>
+                <p className="text-sm text-gray-400">
+                  {selectedMatch.sport} | {selectedMatch.league}
+                </p>
+              </div>
+              <button
+                onClick={() => setSelectedMatch(null)}
+                className="rounded-md border border-white/10 px-3 py-1 text-sm text-gray-300 hover:bg-white/10"
+              >
+                Fermer
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div className="rounded-lg border border-white/10 bg-white/5 p-3">
+                <p className="text-xs uppercase text-gray-400">Date/Heure</p>
+                <p className="mt-1 text-sm text-white">{fmtDate(selectedMatch.startTime)}</p>
+              </div>
+              <div className="rounded-lg border border-white/10 bg-white/5 p-3">
+                <p className="text-xs uppercase text-gray-400">Statut</p>
+                <p className="mt-1 text-sm text-cyan-300">{selectedMatch.status}</p>
+              </div>
+              <div className="rounded-lg border border-white/10 bg-white/5 p-3">
+                <p className="text-xs uppercase text-gray-400">Equipe Domicile</p>
+                <p className="mt-1 text-sm text-white">{selectedMatch.homeTeam}</p>
+              </div>
+              <div className="rounded-lg border border-white/10 bg-white/5 p-3">
+                <p className="text-xs uppercase text-gray-400">Equipe Extérieur</p>
+                <p className="mt-1 text-sm text-white">{selectedMatch.awayTeam}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
