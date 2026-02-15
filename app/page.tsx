@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { GlassCard } from '@/components/ui/glass-card';
 
 type MatchDetailFields = {
+  stars?: string;
   signals?: string;
   placedBets?: string;
   otherPredictions?: string;
@@ -39,6 +40,8 @@ type MatchDetailFields = {
   cashRatio2?: string;
   allCashPctDraw?: string;
   allCashDraw?: string;
+  rawFields?: Record<string, string>;
+  sourceFiles?: string[];
 };
 
 type ApiMatch = MatchDetailFields & {
@@ -346,6 +349,10 @@ export default function Home() {
                 <p className="mt-1 text-sm text-cyan-300">{selectedMatch.status}</p>
               </div>
               <div className="rounded-lg border border-white/10 bg-white/5 p-3">
+                <p className="text-xs uppercase text-gray-400">Stars</p>
+                <p className="mt-1 text-sm text-white">{showValue(selectedMatch.stars)}</p>
+              </div>
+              <div className="rounded-lg border border-white/10 bg-white/5 p-3">
                 <p className="text-xs uppercase text-gray-400">Equipe Domicile</p>
                 <p className="mt-1 text-sm text-white">{selectedMatch.homeTeam}</p>
               </div>
@@ -453,6 +460,28 @@ export default function Home() {
                 <p className="mt-1 text-sm text-white">{showValue(selectedMatch.realScore)}</p>
               </div>
             </div>
+
+            {selectedMatch.rawFields && Object.keys(selectedMatch.rawFields).length > 0 && (
+              <div className="mt-4 rounded-lg border border-white/10 bg-white/5 p-3">
+                <p className="mb-2 text-xs uppercase tracking-wide text-gray-400">
+                  Toutes les colonnes Game Monitor
+                </p>
+                <div className="max-h-64 overflow-auto rounded border border-white/10">
+                  <table className="min-w-full text-xs">
+                    <tbody>
+                      {Object.entries(selectedMatch.rawFields)
+                        .sort((a, b) => a[0].localeCompare(b[0]))
+                        .map(([key, value]) => (
+                          <tr key={key} className="border-b border-white/5">
+                            <td className="w-1/2 px-2 py-1 text-gray-300">{key}</td>
+                            <td className="px-2 py-1 text-white">{showValue(value)}</td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
