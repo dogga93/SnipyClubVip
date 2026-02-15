@@ -1,0 +1,100 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum MarketType {
+  ML
+  SPREAD
+  TOTAL
+  X1X2
+}
+
+enum MarketSide {
+  HOME
+  AWAY
+  DRAW
+  OVER
+  UNDER
+}
+
+enum Verdict {
+  NO_BET
+  LEAN
+  VALUE
+  STRONG_VALUE
+  TRAP_WARNING
+}
+
+model Match {
+  id                  String               @id @default(uuid())
+  externalRef         String?              @unique
+  sport               String
+  league              String
+  homeTeam            String
+  awayTeam            String
+  startTime           DateTime
+  status              String
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  marketSnapshots     MarketSnapshot[]
+  publicCashSnapshots PublicCashSnapshot[]
+  analysisSnapshots   AnalysisSnapshot[]
+
+  @@index([league, startTime])
+  @@index([sport, startTime])
+}
+
+model MarketSnapshot {
+  id         String     @id @default(uuid())
+  matchId    String
+  match      Match      @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  marketType MarketType
+  side       MarketSide
+  book       String
+  openOdds   Float?
+  currentOdds Float
+  ts         DateTime   @default(now())
+
+  @@index([matchId, ts])
+  @@index([matchId, marketType, side, ts])
+}
+
+model PublicCashSnapshot {
+  id            String     @id @default(uuid())
+  matchId       String
+  match         Match      @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  marketType    MarketType
+  side          MarketSide
+  publicPercent Float?
+  cashPercent   Float?
+  ts            DateTime   @default(now())
+
+  @@index([matchId, ts])
+  @@index([matchId, marketType, side, ts])
+}
+
+model AnalysisSnapshot {
+  id            String     @id @default(uuid())
+  matchId       String
+  match         Match      @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  marketType    MarketType
+  side          MarketSide
+  modelProb     Float
+  impliedProb   Float
+  edge          Float
+  fairOdds      Float
+  sharpScore    Int
+  marketPressure Int
+  trapRisk      Int
+  verdict       Verdict
+  reasons       Json
+  ts            DateTime   @default(now())
+
+  @@index([matchId, ts])
+  @@index([matchId, marketType, side, ts])
+}
