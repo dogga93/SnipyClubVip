@@ -466,6 +466,23 @@ export default function Home() {
                 <p className="mb-2 text-xs uppercase tracking-wide text-gray-400">
                   Toutes les colonnes Game Monitor
                 </p>
+                <p className="mb-2 text-xs text-gray-300">
+                  Colonnes detectees: {Object.keys(selectedMatch.rawFields).length}
+                </p>
+                {selectedMatch.sourceFiles && selectedMatch.sourceFiles.length > 0 && (
+                  <div className="mb-2 rounded border border-white/10 bg-white/5 p-2">
+                    <p className="text-[11px] uppercase tracking-wide text-gray-400">
+                      Sources ({selectedMatch.sourceFiles.length})
+                    </p>
+                    <ul className="mt-1 space-y-1 text-xs text-gray-300">
+                      {selectedMatch.sourceFiles.map((file) => (
+                        <li key={file} className="break-all">
+                          {file}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
                 <div className="max-h-64 overflow-auto rounded border border-white/10">
                   <table className="min-w-full text-xs">
                     <tbody>
