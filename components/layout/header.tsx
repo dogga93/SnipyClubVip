@@ -3,139 +3,112 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { motion } from 'framer-motion';
+import { Globe, LogIn } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Bot, Menu, X } from 'lucide-react';
 
 const navigation = [
   { name: 'Home', href: '/' },
-  { name: 'Matches', href: '/matches' },
   { name: 'Picks', href: '/picks' },
+  { name: 'SNIPY Live Bot', href: '/browse' },
+  { name: 'Predictions 11', href: '/matches' },
+  { name: 'SoccerBuddy 13', href: '/ai-desk' },
   { name: 'AI Desk', href: '/ai-desk' },
-  { name: 'Pricing', href: '/pricing' },
+  { name: 'Alerts', href: '/picks' },
+  { name: 'Pricing', href: '/pricing' }
+];
+
+type LeagueLogos = Record<string, string>;
+
+const featuredLeagues = [
+  'england premier league',
+  'france ligue 1',
+  'italy serie a',
+  'spain primera division',
+  'germany bundesliga',
+  'england championship',
+  'portugal primeira liga',
+  'belgium jupiler league',
+  'turkey super lig',
+  'greece super league',
+  'europe champions league'
 ];
 
 export function Header() {
   const pathname = usePathname();
-  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
+  const [logos, setLogos] = React.useState<LeagueLogos>({});
+
+  React.useEffect(() => {
+    const load = async () => {
+      try {
+        const res = await fetch('/league-logos.json', { cache: 'force-cache' });
+        if (!res.ok) return;
+        const data = (await res.json()) as LeagueLogos;
+        setLogos(data);
+      } catch {
+        setLogos({});
+      }
+    };
+    void load();
+  }, []);
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-white/5 bg-[#0a0a0b]/80 backdrop-blur-xl">
-      <nav className="mx-auto flex max-w-7xl items-center justify-between p-4 lg:px-8">
-        <div className="flex lg:flex-1">
-          <Link href="/" className="-m-1.5 p-1.5 flex items-center gap-2">
-            <Bot className="h-8 w-8 text-purple-500" />
-            <span className="text-xl font-bold bg-gradient-to-r from-purple-400 to-orange-400 bg-clip-text text-transparent">
-              SportBot AI
-            </span>
-          </Link>
-        </div>
+    <header className="sticky top-0 z-50 border-b border-cyan-500/20 bg-[linear-gradient(180deg,rgba(3,10,25,0.98),rgba(5,13,33,0.95))] backdrop-blur-xl">
+      <div className="mx-auto flex max-w-[1660px] items-center justify-between px-6 py-4">
+        <Link href="/" className="flex items-center gap-3">
+          <span className="inline-grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-emerald-400 to-cyan-500 font-black text-slate-900">
+            SP
+          </span>
+          <span className="text-4 font-semibold tracking-tight text-emerald-300">SnipyClubVip</span>
+        </Link>
 
-        <div className="flex lg:hidden">
-          <button
-            type="button"
-            className="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5 text-gray-400"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
-            {mobileMenuOpen ? (
-              <X className="h-6 w-6" />
-            ) : (
-              <Menu className="h-6 w-6" />
-            )}
-          </button>
-        </div>
-
-        <div className="hidden lg:flex lg:gap-x-8">
+        <nav className="hidden items-center gap-7 lg:flex">
           {navigation.map((item) => {
-            const isActive = pathname === item.href ||
-              (item.href === '/matches' && pathname === '/browse') ||
-              (item.href === '/matches' && pathname.startsWith('/match/'));
-
+            const active = pathname === item.href || (item.href === '/browse' && pathname.startsWith('/match/'));
             return (
               <Link
                 key={item.name}
                 href={item.href}
                 className={cn(
-                  'relative text-sm font-medium transition-colors hover:text-purple-400',
-                  isActive ? 'text-purple-400' : 'text-gray-300'
+                  'text-sm transition',
+                  active ? 'text-cyan-300' : 'text-slate-200 hover:text-white'
                 )}
               >
                 {item.name}
-                {isActive && (
-                  <motion.div
-                    layoutId="activeTab"
-                    className="absolute -bottom-5 left-0 right-0 h-0.5 bg-gradient-to-r from-purple-500 to-orange-500"
-                  />
-                )}
               </Link>
             );
           })}
-        </div>
+        </nav>
 
-        <div className="hidden lg:flex lg:flex-1 lg:justify-end lg:gap-x-4">
+        <div className="hidden items-center gap-4 lg:flex">
+          <button className="rounded-full border border-cyan-400/30 p-2 text-slate-200 hover:bg-cyan-500/10">
+            <Globe className="h-4 w-4" />
+          </button>
+          <button className="flex items-center gap-2 text-sm text-slate-200 hover:text-white">
+            <LogIn className="h-4 w-4" /> Sign in
+          </button>
           <Link
             href="/pricing"
-            className="text-sm font-medium text-gray-300 hover:text-white transition-colors"
-          >
-            Sign In
-          </Link>
-          <Link
-            href="/pricing"
-            className="rounded-lg bg-gradient-to-r from-purple-500 to-orange-500 px-4 py-2 text-sm font-semibold text-white shadow-lg hover:shadow-purple-500/50 transition-all"
+            className="rounded-xl bg-gradient-to-r from-emerald-400 to-cyan-500 px-5 py-2.5 text-sm font-semibold text-slate-900"
           >
             Get Started
           </Link>
         </div>
-      </nav>
+      </div>
 
-      {mobileMenuOpen && (
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          className="lg:hidden border-t border-white/5"
-        >
-          <div className="space-y-1 px-4 pb-4 pt-4">
-            {navigation.map((item) => {
-              const isActive = pathname === item.href ||
-                (item.href === '/matches' && pathname === '/browse') ||
-                (item.href === '/matches' && pathname.startsWith('/match/'));
-
-              return (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={cn(
-                    'block rounded-lg px-3 py-2 text-base font-medium',
-                    isActive
-                      ? 'bg-purple-500/10 text-purple-400'
-                      : 'text-gray-300 hover:bg-white/5'
-                  )}
-                >
-                  {item.name}
-                </Link>
-              );
-            })}
-            <div className="pt-4 space-y-2">
-              <Link
-                href="/pricing"
-                onClick={() => setMobileMenuOpen(false)}
-                className="block rounded-lg px-3 py-2 text-base font-medium text-gray-300 hover:bg-white/5"
-              >
-                Sign In
-              </Link>
-              <Link
-                href="/pricing"
-                onClick={() => setMobileMenuOpen(false)}
-                className="block rounded-lg bg-gradient-to-r from-purple-500 to-orange-500 px-3 py-2 text-base font-semibold text-white text-center"
-              >
-                Get Started
-              </Link>
+      <div className="mx-auto mb-2 max-w-[1660px] px-6">
+        <div className="flex items-center gap-3 overflow-x-auto rounded-2xl border border-cyan-500/30 bg-slate-900/45 px-3 py-2">
+          {featuredLeagues.map((league) => (
+            <div key={league} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-cyan-500/35 bg-slate-950/75">
+              {logos[league] ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={logos[league]} alt={league} className="h-8 w-8 rounded-full object-cover" />
+              ) : (
+                <span className="text-xs">⚽</span>
+              )}
             </div>
-          </div>
-        </motion.div>
-      )}
+          ))}
+        </div>
+      </div>
     </header>
   );
 }

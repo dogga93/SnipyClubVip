@@ -1,88 +1,112 @@
 'use client';
 
 import * as React from 'react';
-import { useState, useEffect, useMemo } from 'react';
-import { motion } from 'framer-motion';
+import { useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Calendar, Search } from 'lucide-react';
 import { Sidebar } from '@/components/layout/sidebar';
-import { LeagueCard } from '@/components/browse/league-card';
 import { PicksFeed } from '@/components/browse/picks-feed';
-import { GlassCard } from '@/components/ui/glass-card';
+import { GlassPanel } from '@/components/ui/glass-panel';
+import { SectionHeader } from '@/components/ui/section-header';
+import { LeagueItem } from '@/components/ui/league-item';
+import { SignalCard } from '@/components/ui/signal-card';
+import { MiniBadge } from '@/components/ui/mini-badge';
+import { MonitorMatchCard } from '@/components/ui/monitor-match-card';
 import { Input } from '@/components/ui/input';
-import { GlowButton } from '@/components/ui/glow-button';
-import { Search, Calendar } from 'lucide-react';
 import { supabase, League, Pick } from '@/lib/supabase';
-import type { MonitorMatch, MonitorLeague, MonitorPayload } from '@/lib/monitor/types';
+import type { MonitorLeague, MonitorMatch, MonitorPayload } from '@/lib/monitor/types';
+import {
+  computeSportsStats,
+  enrichMonitorMatches,
+  mergeMonitorAndSupabaseLeagues,
+  parsePercent
+} from '@/lib/monitor/merge';
+
+const SPORTS_ORDER = ['SOCCER', 'BASKETBALL', 'HOCKEY', 'TENNIS'] as const;
+
+type LeagueLogos = Record<string, string>;
+
+const formatTodayParis = () =>
+  new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Europe/Paris',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }).format(new Date());
 
 export default function BrowsePage() {
-  const [leagues, setLeagues] = useState<League[]>([]);
+  const router = useRouter();
+
+  const [supabaseLeagues, setSupabaseLeagues] = useState<League[]>([]);
+  const [mergedLeagues, setMergedLeagues] = useState<League[]>([]);
   const [picks, setPicks] = useState<Pick[]>([]);
   const [monitorMatches, setMonitorMatches] = useState<MonitorMatch[]>([]);
+  const [monitorPayload, setMonitorPayload] = useState<MonitorPayload | null>(null);
+
   const [selectedLeagueId, setSelectedLeagueId] = useState<string>();
   const [searchQuery, setSearchQuery] = useState('');
-  const [todayOnly, setTodayOnly] = useState(false);
-  const [monitorError, setMonitorError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [todayOnly, setTodayOnly] = useState(true);
 
-  useEffect(() => {
+  const [loadingMonitor, setLoadingMonitor] = useState(true);
+  const [loadingSupabase, setLoadingSupabase] = useState(true);
+  const [monitorError, setMonitorError] = useState<string | null>(null);
+
+  const [leagueLogos, setLeagueLogos] = useState<LeagueLogos>({});
+
+  const todayParis = useMemo(formatTodayParis, []);
+
+  React.useEffect(() => {
+    void loadLogos();
     void loadMonitor();
     void loadSupabase();
   }, []);
 
-  const todayParis = useMemo(
-    () =>
-      new Intl.DateTimeFormat('en-CA', {
-        timeZone: 'Europe/Paris',
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit'
-      }).format(new Date()),
-    []
-  );
+  async function loadLogos() {
+    try {
+      const res = await fetch('/league-logos.json', { cache: 'force-cache' });
+      if (!res.ok) return;
+      const data = (await res.json()) as LeagueLogos;
+      setLeagueLogos(data);
+    } catch {
+      setLeagueLogos({});
+    }
+  }
 
   async function loadMonitor() {
     try {
+      setLoadingMonitor(true);
       setMonitorError(null);
       const monitorRes = await fetch('/api/monitor/current', { cache: 'no-store' });
-      if (!monitorRes.ok) throw new Error(`monitor/current HTTP ${monitorRes.status}`);
-      const monitor = (await monitorRes.json()) as MonitorPayload;
-
-      const incomingMatches = Array.isArray(monitor.matches) ? monitor.matches : [];
-      const incomingLeagues = Array.isArray(monitor.leagues) ? monitor.leagues : [];
-      setMonitorMatches(incomingMatches);
-
-      if (incomingLeagues.length > 0) {
-        setLeagues((prev) => {
-          const existing = new Set(prev.map((l) => l.name.toLowerCase()));
-          const mappedMonitor: League[] = incomingLeagues
-            .filter((l: MonitorLeague) => !existing.has(String(l.name || '').toLowerCase()))
-            .map((l: MonitorLeague) => ({
-              id: String(l.id),
-              name: String(l.name),
-              country: '',
-              icon: String(l.icon || '⚽'),
-              sport: 'SOCCER',
-              is_active: true,
-              matches_count: Number(l.matches_count || 0),
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString()
-            }));
-
-          return mappedMonitor.length ? [...prev, ...mappedMonitor] : prev;
-        });
+      if (!monitorRes.ok) {
+        const text = await monitorRes.text();
+        throw new Error(`HTTP ${monitorRes.status}: ${text}`);
       }
+
+      const monitor = (await monitorRes.json()) as MonitorPayload;
+      const matches = enrichMonitorMatches(Array.isArray(monitor.matches) ? monitor.matches : []);
+
+      setMonitorPayload(monitor);
+      setMonitorMatches(matches);
+
+      setMergedLeagues((prev) => mergeMonitorAndSupabaseLeagues(monitor.leagues ?? [], prev));
     } catch (error) {
-      setMonitorError(error instanceof Error ? error.message : 'monitor failed');
       console.error('[browse] monitor load failed', error);
+      setMonitorError(error instanceof Error ? error.message : 'Failed to load monitor data');
+    } finally {
+      setLoadingMonitor(false);
     }
   }
 
   async function loadSupabase() {
     try {
+      setLoadingSupabase(true);
+
       const [leaguesRes, picksRes] = await Promise.all([
         supabase.from('leagues').select('*').order('matches_count', { ascending: false }),
         supabase
           .from('picks')
-          .select(`
+          .select(
+            `
             *,
             match:matches(
               *,
@@ -90,176 +114,306 @@ export default function BrowsePage() {
               home_team:teams!matches_home_team_id_fkey(*),
               away_team:teams!matches_away_team_id_fkey(*)
             )
-          `)
+          `
+          )
           .order('created_at', { ascending: false })
           .limit(10)
       ]);
 
-      if (leaguesRes.data) {
-        setLeagues((prev) => {
-          const existing = new Set(prev.map((l) => l.name.toLowerCase()));
-          const supa = (leaguesRes.data as League[]).filter((l) => !existing.has(l.name.toLowerCase()));
-          return [...supa, ...prev];
-        });
-      }
-      if (picksRes.data) setPicks(picksRes.data as Pick[]);
+      const supaLeagues = (leaguesRes.data as League[] | null) ?? [];
+      const supaPicks = (picksRes.data as Pick[] | null) ?? [];
+
+      setSupabaseLeagues(supaLeagues);
+      setPicks(supaPicks);
+      setMergedLeagues((prev) => mergeMonitorAndSupabaseLeagues((monitorPayload?.leagues ?? []) as MonitorLeague[], [...supaLeagues, ...prev]));
     } catch (error) {
       console.error('[browse] supabase load failed', error);
     } finally {
-      setLoading(false);
+      setLoadingSupabase(false);
     }
   }
 
   const selectedLeagueName = useMemo(() => {
-    if (!selectedLeagueId) return null;
-    const selected = leagues.find((l) => l.id === selectedLeagueId);
-    return selected?.name?.toLowerCase() ?? null;
-  }, [selectedLeagueId, leagues]);
+    if (!selectedLeagueId) return '';
+    const selected = mergedLeagues.find((l) => l.id === selectedLeagueId);
+    return (selected?.name ?? '').toLowerCase();
+  }, [selectedLeagueId, mergedLeagues]);
 
-  const filteredLeagues = leagues.filter((league) =>
-    searchQuery
-      ? league.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        league.country.toLowerCase().includes(searchQuery.toLowerCase())
-      : selectedLeagueId
-      ? league.id === selectedLeagueId
-      : true
-  );
+  const filteredLeagues = useMemo(() => {
+    return mergedLeagues
+      .filter((league) => (league.matches_count ?? 0) > 0)
+      .filter((league) => {
+        if (!searchQuery) return true;
+        const q = searchQuery.toLowerCase();
+        return league.name.toLowerCase().includes(q) || (league.country || '').toLowerCase().includes(q);
+      });
+  }, [mergedLeagues, searchQuery]);
 
-  const filteredMonitorMatches = monitorMatches
-    .filter((m) => (todayOnly ? m.date === todayParis : true))
-    .filter((m) => (selectedLeagueName ? m.league.toLowerCase() === selectedLeagueName : true))
-    .filter((m) => {
-      if (!searchQuery) return true;
-      const q = searchQuery.toLowerCase();
-      return (
-        m.league.toLowerCase().includes(q) ||
-        m.homeTeam.toLowerCase().includes(q) ||
-        m.awayTeam.toLowerCase().includes(q)
-      );
-    })
-    .slice(0, 24);
+  const filteredMonitorMatches = useMemo(() => {
+    return monitorMatches
+      .filter((match) => Boolean(match.league && match.homeTeam && match.awayTeam))
+      .filter((match) => (todayOnly ? match.date === todayParis : true))
+      .filter((match) => (selectedLeagueName ? match.league.toLowerCase() === selectedLeagueName : true))
+      .filter((match) => {
+        if (!searchQuery) return true;
+        const q = searchQuery.toLowerCase();
+        return (
+          match.league.toLowerCase().includes(q) ||
+          match.homeTeam.toLowerCase().includes(q) ||
+          match.awayTeam.toLowerCase().includes(q)
+        );
+      });
+  }, [monitorMatches, todayOnly, todayParis, selectedLeagueName, searchQuery]);
+
+  const sportsStats = useMemo(() => {
+    const raw = computeSportsStats(filteredMonitorMatches);
+    const map = new Map(raw.map((s) => [s.sport, s.count]));
+    return SPORTS_ORDER.map((sport) => ({ sport, count: map.get(sport) ?? 0 }));
+  }, [filteredMonitorMatches]);
+
+  const trendingLeagues = useMemo(() => filteredLeagues.slice(0, 8), [filteredLeagues]);
+
+  const matchOfDay = filteredMonitorMatches[0] ?? monitorMatches[0] ?? null;
+
+  const pageLoading = loadingMonitor && loadingSupabase;
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="flex h-[calc(100vh-124px)] overflow-hidden bg-[radial-gradient(circle_at_30%_0%,rgba(16,60,120,0.28),transparent_48%),radial-gradient(circle_at_90%_100%,rgba(8,45,90,0.22),transparent_44%),#040915]">
       <Sidebar
-        leagues={leagues}
+        leagues={filteredLeagues}
         selectedLeagueId={selectedLeagueId}
-        onSelectLeague={(id) => setSelectedLeagueId(id === selectedLeagueId ? undefined : id)}
+        onSelectLeague={(id) => setSelectedLeagueId((prev) => (prev === id ? undefined : id))}
       />
 
-      <div className="flex-1 overflow-y-auto">
-        <div className="container max-w-7xl mx-auto p-8 space-y-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="space-y-4"
-          >
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
-              Sports Analytics Terminal
-            </h1>
-            <p className="text-gray-400">AI-powered predictions and real-time betting intelligence</p>
-          </motion.div>
+      <main className="flex-1 overflow-y-auto px-4 py-4 lg:px-5">
+        <div className="mx-auto grid max-w-[1320px] grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
+          <div className="space-y-4">
+            <div className="grid gap-4 lg:grid-cols-[280px_minmax(0,1fr)]">
+              <GlassPanel className="space-y-3">
+                <SectionHeader title="Sports Desk" />
+                {sportsStats.map((s) => (
+                  <button
+                    key={s.sport}
+                    className="flex w-full items-center justify-between rounded-xl border border-cyan-500/25 bg-cyan-500/8 px-3 py-2 text-left hover:border-cyan-400/50"
+                  >
+                    <span className="text-lg font-semibold text-white">
+                      {s.sport === 'SOCCER' ? '⚽ Soccer' : s.sport === 'BASKETBALL' ? '🏀 Basketball' : s.sport === 'HOCKEY' ? '🏒 Hockey' : '🎾 Tennis'}
+                    </span>
+                    <MiniBadge tone="cyan">{s.count}</MiniBadge>
+                  </button>
+                ))}
 
-          <GlassCard className="p-6">
-            <div className="flex items-center gap-4">
-              <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <Input
-                  placeholder="Search leagues..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 bg-white/5 border-white/10"
-                />
+                <div className="mt-2 border-t border-cyan-500/20 pt-2">
+                  <SectionHeader title="Leagues" right={`${filteredLeagues.length}`} className="mb-2" />
+                  <div className="max-h-[360px] space-y-2 overflow-y-auto pr-1">
+                    {filteredLeagues.slice(0, 16).map((league) => (
+                      <LeagueItem
+                        key={league.id}
+                        name={league.name}
+                        count={league.matches_count}
+                        active={selectedLeagueId === league.id}
+                        logo={leagueLogos[league.name.toLowerCase()]}
+                        onClick={() => setSelectedLeagueId((prev) => (prev === league.id ? undefined : league.id))}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </GlassPanel>
+
+              <div className="space-y-4">
+                <GlassPanel className="space-y-3">
+                  <SectionHeader title="Match Du Jour" right={matchOfDay ? '1/2' : '0/2'} />
+                  {matchOfDay ? (
+                    <>
+                      <div className="flex flex-wrap items-center gap-2 text-3xl font-bold text-white">
+                        <span>{matchOfDay.homeTeam}</span>
+                        <span className="text-cyan-300">vs</span>
+                        <span>{matchOfDay.awayTeam}</span>
+                        <span className="text-sm font-medium text-slate-300">{matchOfDay.kickOffEt || '06:30 ET'}</span>
+                      </div>
+                      <p className="text-2xl font-semibold text-emerald-300">PICK: {matchOfDay.homeTeam} ML ✅</p>
+                      <p className="text-sm leading-6 text-slate-200">
+                        MATCH DU JOUR: {matchOfDay.homeTeam} vs {matchOfDay.awayTeam} ({matchOfDay.league}).
+                        Le monitor combine probabilités, signal public/cash et momentum pour proposer un pick prioritaire.
+                      </p>
+                    </>
+                  ) : (
+                    <p className="text-sm text-slate-300">Aucun match du jour disponible.</p>
+                  )}
+                </GlassPanel>
+
+                <GlassPanel className="space-y-3">
+                  <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                    {sportsStats.map((s) => (
+                      <div key={s.sport} className="rounded-2xl border border-cyan-500/30 bg-[linear-gradient(160deg,rgba(20,60,95,0.55),rgba(12,30,58,0.8))] p-3">
+                        <p className="text-3xl font-semibold text-white">
+                          {s.sport === 'SOCCER' ? 'Soccer' : s.sport === 'BASKETBALL' ? 'Basketball' : s.sport === 'HOCKEY' ? 'Hockey' : 'Tennis'}
+                        </p>
+                        <p className="mt-2 text-lg text-cyan-200">{s.count} matches</p>
+                      </div>
+                    ))}
+                  </div>
+
+                  <SectionHeader title="Trending Now" />
+                  <div className="flex flex-wrap gap-2">
+                    {trendingLeagues.map((league) => (
+                      <button
+                        key={league.id}
+                        onClick={() => setSelectedLeagueId((prev) => (prev === league.id ? undefined : league.id))}
+                        className="flex items-center gap-2 rounded-full border border-cyan-500/30 bg-slate-900/60 px-3 py-1.5 text-sm text-slate-100 hover:border-cyan-400"
+                      >
+                        <span className="inline-flex h-5 w-5 items-center justify-center overflow-hidden rounded-full border border-cyan-500/30 bg-slate-950/80">
+                          {leagueLogos[league.name.toLowerCase()] ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={leagueLogos[league.name.toLowerCase()]} alt={league.name} className="h-full w-full object-cover" />
+                          ) : (
+                            '⚽'
+                          )}
+                        </span>
+                        <span>{league.name}</span>
+                        <MiniBadge tone="green">{league.matches_count}</MiniBadge>
+                      </button>
+                    ))}
+                  </div>
+
+                  <SectionHeader title="Soccer Leagues" right={`${filteredLeagues.length} leagues`} />
+                  <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
+                    {filteredLeagues.slice(0, 12).map((league) => (
+                      <button
+                        key={`grid-${league.id}`}
+                        onClick={() => setSelectedLeagueId((prev) => (prev === league.id ? undefined : league.id))}
+                        className="rounded-xl border border-cyan-500/30 bg-[linear-gradient(145deg,rgba(8,28,58,0.85),rgba(8,22,45,0.9))] p-3 text-left hover:border-cyan-400/50"
+                      >
+                        <p className="truncate text-lg font-semibold text-white">{league.name}</p>
+                        <p className="text-base text-emerald-300">{league.matches_count} matches</p>
+                      </button>
+                    ))}
+                  </div>
+                </GlassPanel>
               </div>
-              <GlowButton
-                variant="secondary"
-                className="gap-2"
-                onClick={() => setTodayOnly((v) => !v)}
-              >
-                <Calendar className="w-4 h-4" />
-                {todayOnly ? `Today ✓ (${todayParis})` : `Today (${todayParis})`}
-              </GlowButton>
             </div>
-          </GlassCard>
 
-          <div>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-white">
-                {selectedLeagueId ? 'Selected League' : 'All Leagues'}
-              </h2>
-              <div className="flex items-center gap-4 text-sm">
-                <div className="px-4 py-2 rounded-lg bg-cyan-500/10 border border-cyan-500/30">
-                  <span className="text-gray-400">Active Matches:</span>{' '}
-                  <span className="font-bold text-cyan-400">
-                    {leagues.reduce((sum, l) => sum + l.matches_count, 0)}
-                  </span>
+            <GlassPanel className="space-y-3">
+              <div className="grid gap-3 md:grid-cols-3">
+                <div className="rounded-xl border border-cyan-500/25 bg-slate-900/40 p-3">
+                  <p className="text-xs uppercase tracking-wide text-slate-400">Active Sport Matches</p>
+                  <p className="mt-1 text-4xl font-bold text-cyan-300">{filteredMonitorMatches.length}</p>
+                </div>
+                <div className="rounded-xl border border-cyan-500/25 bg-slate-900/40 p-3">
+                  <p className="text-xs uppercase tracking-wide text-slate-400">Selected League</p>
+                  <p className="mt-1 truncate text-3xl font-semibold text-white">
+                    {selectedLeagueName || 'All leagues'}
+                  </p>
+                </div>
+                <div className="rounded-xl border border-cyan-500/25 bg-slate-900/40 p-3">
+                  <p className="text-xs uppercase tracking-wide text-slate-400">Upcoming Matches</p>
+                  <p className="mt-1 text-4xl font-bold text-emerald-300">{filteredMonitorMatches.length}</p>
                 </div>
               </div>
-            </div>
 
-            {loading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {[...Array(6)].map((_, i) => (
-                  <div key={i} className="h-32 rounded-2xl bg-white/5 animate-pulse" />
-                ))}
+              <SectionHeader title="Filters" />
+              <div className="grid gap-2 md:grid-cols-[220px_minmax(0,1fr)_220px]">
+                <button
+                  onClick={() => setTodayOnly((v) => !v)}
+                  className="flex items-center gap-2 rounded-xl border border-cyan-500/30 bg-slate-900/60 px-3 py-2 text-sm text-slate-100"
+                >
+                  <Calendar className="h-4 w-4 text-cyan-300" />
+                  {todayOnly ? todayParis : monitorPayload?.date || todayParis}
+                </button>
+                <div className="rounded-xl border border-cyan-500/30 bg-slate-900/60 px-3 py-2 text-sm text-cyan-200">
+                  {selectedLeagueName || 'All leagues'}
+                </div>
+                <div className="relative">
+                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <Input
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search team or league"
+                    className="h-10 border-cyan-500/30 bg-slate-900/70 pl-9 text-sm"
+                  />
+                </div>
               </div>
-            ) : (
-              <motion.div
-                initial="hidden"
-                animate="visible"
-                variants={{ visible: { transition: { staggerChildren: 0.05 } } }}
-                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-              >
-                {filteredLeagues.map((league) => (
-                  <motion.div
-                    key={league.id}
-                    variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
-                  >
-                    <LeagueCard
-                      name={league.name}
-                      country={league.country}
-                      icon={league.icon}
-                      matchesCount={league.matches_count}
-                      onClick={() => setSelectedLeagueId(league.id)}
-                    />
-                  </motion.div>
-                ))}
-              </motion.div>
-            )}
+            </GlassPanel>
+
+            <div className="space-y-3">
+              <SectionHeader title={`${filteredMonitorMatches.length} upcoming matches`} />
+
+              {monitorError ? (
+                <GlassPanel>
+                  <p className="text-sm text-rose-300">Monitor error: {monitorError}</p>
+                </GlassPanel>
+              ) : null}
+
+              {pageLoading ? (
+                <GlassPanel>
+                  <p className="text-sm text-slate-300">Loading matches...</p>
+                </GlassPanel>
+              ) : (
+                <div className="grid gap-3 lg:grid-cols-2">
+                  {filteredMonitorMatches.slice(0, 16).map((match) => {
+                    const confidence = parsePercent(match.confidence);
+                    return (
+                      <MonitorMatchCard
+                        key={match.id}
+                        match={match}
+                        confidence={confidence}
+                        onClick={() => router.push(`/match/${match.slug ?? match.id}`)}
+                      />
+                    );
+                  })}
+                </div>
+              )}
+
+              {!pageLoading && filteredMonitorMatches.length === 0 ? (
+                <GlassPanel>
+                  <p className="text-sm text-slate-300">No imported matches for selected filters.</p>
+                </GlassPanel>
+              ) : null}
+            </div>
           </div>
 
-          <GlassCard className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-bold text-white">Imported Matches</h3>
-              <span className="text-xs text-cyan-300">{filteredMonitorMatches.length} shown</span>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {monitorError && (
-                <div className="text-sm text-rose-300 border border-rose-500/30 rounded-lg p-3">
-                  Monitor error: {monitorError}
-                </div>
+          <div className="space-y-4">
+            <GlassPanel className="space-y-3">
+              <SectionHeader title="SNIPY Live Bot" right="LIVE" />
+              <SignalCard
+                title="SNIPY Live Bot • Soccer"
+                tag="GX"
+                lines={[
+                  'Total Over 0.5 Goals @ 1.350',
+                  matchOfDay ? `${matchOfDay.homeTeam} vs ${matchOfDay.awayTeam}` : 'No current signal',
+                  'Current score synced from monitor',
+                  'Signal pushed in realtime'
+                ]}
+              />
+              <SignalCard
+                title="SNIPY Live Bot • Portugal Primeira Liga"
+                lines={['Total Over 1.5 Goals @ 1.370', 'Rio Ave vs Braga']}
+              />
+              <SignalCard
+                title="SNIPY Live Bot • Spain Primera Division"
+                lines={['Total Over 1.5 Goals @ 1.350', 'Betis vs Atl. Madrid']}
+              />
+            </GlassPanel>
+
+            <GlassPanel className="space-y-3">
+              <SectionHeader title="VIP Picks" right="HOT" />
+              {picks.length === 0 ? (
+                <p className="text-sm text-slate-300">Aucun pick VIP disponible.</p>
+              ) : (
+                picks.slice(0, 4).map((pick) => (
+                  <SignalCard
+                    key={pick.id}
+                    title={`${pick.user_name} (${pick.is_vip ? 'VIP' : 'Pick'})`}
+                    lines={[pick.pick, pick.match?.league?.name || 'Match', pick.status]}
+                  />
+                ))
               )}
-              {filteredMonitorMatches.map((m) => (
-                <div key={m.id} className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
-                  <div className="text-xs text-cyan-300 mb-1">{m.league}</div>
-                  <div className="text-sm text-white font-semibold">
-                    {m.homeTeam} vs {m.awayTeam}
-                  </div>
-                  <div className="text-[11px] text-gray-400 mt-1">{m.date}</div>
-                </div>
-              ))}
-              {filteredMonitorMatches.length === 0 && (
-                <div className="text-sm text-gray-400">
-                  No imported matches found for this search.
-                </div>
-              )}
-            </div>
-          </GlassCard>
+            </GlassPanel>
+          </div>
         </div>
-      </div>
+      </main>
 
       <PicksFeed picks={picks} />
     </div>
   );
 }
-

@@ -8,6 +8,7 @@
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
+    "import:monitor": "node scripts/import-game-monitor-json.mjs --replace",
     "validate:monitor": "node scripts/validate-monitor.mjs",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",

@@ -2,6 +2,7 @@ import path from 'node:path';
 import { readFile } from 'node:fs/promises';
 import * as XLSX from 'xlsx';
 import type { MonitorLeague, MonitorMatch, MonitorPayload, MonitorStats } from '@/lib/monitor/types';
+import { toMonitorSlug } from '@/lib/monitor/merge';
 
 type NormalizeOptions = {
   excelPath: string;
@@ -142,13 +143,46 @@ const normalizeExcel = async (excelPath: string, manifestPath: string): Promise<
 
     matches.push({
       id: `excel-${i}-${slug(league)}-${slug(game.home)}-${slug(game.away)}`,
+      slug: toMonitorSlug({
+        sport: clean(row['Sport']) || 'SOCCER',
+        league,
+        homeTeam: game.home,
+        awayTeam: game.away
+      }),
       league,
       homeTeam: game.home,
       awayTeam: game.away,
       date: rowDate || monitorDate,
       sport: clean(row['Sport']) || 'SOCCER',
       status: clean(row['Status']) || undefined,
-      confidence: toNumber(row['Confidence'])
+      confidence: toNumber(row['Confidence']),
+      kickOffEt: clean(row['Date']),
+      ml1: clean(row['Moneyline 1']),
+      mlDraw: clean(row['Moneyline Draw']),
+      ml2: clean(row['Moneyline 2']),
+      probability1: clean(row['Probability 1']),
+      probabilityDraw: clean(row['Probability Draw']),
+      probability2: clean(row['Probability 2']),
+      predictedScore1: clean(row['Predicted Score 1']),
+      predictedScore2: clean(row['Predicted Score 2']),
+      publicMl1: clean(row['Public % ML Team 1']),
+      publicMlDraw: clean(row['Public % ML DRAW']),
+      publicMl2: clean(row['Public % ML Team 2']),
+      allPublicPct1: clean(row['ALL Public % Team 1']),
+      allPublicPctDraw: clean(row['ALL Public % Draw']),
+      allPublicPct2: clean(row['ALL Public % Team 2']),
+      allCashPct1: clean(row['ALL Cash % Team 1']),
+      allCashPctDraw: clean(row['ALL Cash % Draw']),
+      allCashPct2: clean(row['ALL Cash % Team 2']),
+      allCashTeam1: clean(row['ALL Cash Team 1']),
+      allCashDraw: clean(row['ALL Cash Draw']),
+      allCashTeam2: clean(row['ALL Cash Team 2']),
+      cashRatio1: clean(row['Cash Ratio Team 1']),
+      cashRatio2: clean(row['Cash Ratio Team 2']),
+      stars: clean(row['Stars']),
+      signals: clean(row['Signals']),
+      otherPredictions: clean(row['Other predictions']),
+      realScore: clean(row['Real Score'])
     });
   }
 
@@ -197,13 +231,46 @@ const normalizeJson = async (jsonPath: string, manifestPath: string): Promise<Mo
 
       return {
         id: `json-${idx}-${slug(league)}-${slug(teams.home)}-${slug(teams.away)}`,
+        slug: toMonitorSlug({
+          sport: clean(row.sport) || 'SOCCER',
+          league,
+          homeTeam: teams.home,
+          awayTeam: teams.away
+        }),
         league,
         homeTeam: teams.home,
         awayTeam: teams.away,
         date: rowDate || monitorDate,
         sport: clean(row.sport) || 'SOCCER',
         status: clean(row.status) || undefined,
-        confidence: toNumber(row.confidence)
+        confidence: toNumber(row.confidence),
+        kickOffEt: clean(row.kickOffEt ?? row.date),
+        ml1: clean(row.ml1),
+        mlDraw: clean(row.mlDraw),
+        ml2: clean(row.ml2),
+        probability1: clean(row.probability1),
+        probabilityDraw: clean(row.probabilityDraw),
+        probability2: clean(row.probability2),
+        predictedScore1: clean(row.predictedScore1),
+        predictedScore2: clean(row.predictedScore2),
+        publicMl1: clean(row.publicMl1),
+        publicMlDraw: clean(row.publicMlDraw),
+        publicMl2: clean(row.publicMl2),
+        allPublicPct1: clean(row.allPublicPct1),
+        allPublicPctDraw: clean(row.allPublicPctDraw),
+        allPublicPct2: clean(row.allPublicPct2),
+        allCashPct1: clean(row.allCashPct1),
+        allCashPctDraw: clean(row.allCashPctDraw),
+        allCashPct2: clean(row.allCashPct2),
+        allCashTeam1: clean(row.allCashTeam1),
+        allCashDraw: clean(row.allCashDraw),
+        allCashTeam2: clean(row.allCashTeam2),
+        cashRatio1: clean(row.cashRatio1),
+        cashRatio2: clean(row.cashRatio2),
+        stars: clean(row.stars),
+        signals: clean(row.signals),
+        otherPredictions: clean(row.otherPredictions),
+        realScore: clean(row.realScore)
       };
     })
     .filter((m): m is MonitorMatch => Boolean(m));
@@ -251,4 +318,3 @@ export const normalizeCurrentMonitor = async (options: NormalizeOptions): Promis
 
   throw new Error(`Monitor normalization failed. ${errors.join(' | ')}`);
 };
-

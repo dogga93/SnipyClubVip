@@ -1,6 +1,5 @@
-#!/usr/bin/env node
-import fs from 'node:fs';
 import path from 'node:path';
+import { readFile } from 'node:fs/promises';
 import * as XLSX from 'xlsx';
 
 const root = process.cwd();
@@ -8,85 +7,76 @@ const excelPath = path.join(root, 'public', 'monitors', 'current', 'soccer-monit
 const manifestPath = path.join(root, 'public', 'monitors', 'current', 'input-manifest.json');
 
 const clean = (v) => String(v ?? '').replace(/\u00A0/g, ' ').replace(/\s+/g, ' ').trim();
-const parseGame = (v) => {
-  const txt = clean(v);
+
+const parseManifestDate = async () => {
+  try {
+    const raw = await readFile(manifestPath, 'utf8');
+    const data = JSON.parse(raw);
+    return clean(data?.date);
+  } catch {
+    return '';
+  }
+};
+
+const parseGame = (value) => {
+  const txt = clean(value);
   const parts = txt.split(/\s+vs\.?\s+/i);
   if (parts.length !== 2) return null;
-  const home = clean(parts[0]);
-  const away = clean(parts[1]);
-  if (!home || !away) return null;
-  return { home, away };
+  const homeTeam = clean(parts[0]);
+  const awayTeam = clean(parts[1]);
+  if (!homeTeam || !awayTeam) return null;
+  return { homeTeam, awayTeam };
 };
-const normalizeDate = (v) => {
-  const txt = clean(v);
-  if (!txt) return '';
-  const d = new Date(txt);
-  return Number.isNaN(d.getTime()) ? '' : d.toISOString().slice(0, 10);
-};
-const parseDateFromFilename = (filePath) => {
-  const name = path.basename(filePath);
-  const m = name.match(/(20\d{2})[-_ ](\d{2})[-_ ](\d{2})/);
-  return m ? `${m[1]}-${m[2]}-${m[3]}` : '';
-};
-const todayIso = () => new Date().toISOString().slice(0, 10);
 
-if (!fs.existsSync(excelPath)) {
-  console.error(`[validate:monitor] Missing file: ${excelPath}`);
+const main = async () => {
+  const manifestDate = await parseManifestDate();
+  const excelBuffer = await readFile(excelPath);
+  const wb = XLSX.read(excelBuffer, { type: 'buffer', cellDates: false });
+  const sheet = wb.Sheets['Game list'] ?? wb.Sheets[wb.SheetNames[0]];
+  if (!sheet) throw new Error('Sheet "Game list" not found');
+
+  const rows = XLSX.utils.sheet_to_json(sheet, { defval: '', raw: false });
+  const issues = [];
+  const leagues = new Map();
+  let validMatches = 0;
+
+  rows.forEach((row, index) => {
+    const league = clean(row['League']);
+    const sport = clean(row['Sport']) || 'SOCCER';
+    const game = parseGame(row['Game']);
+    if (!league && !game) return;
+
+    if (!league) issues.push(`Row ${index + 2}: missing League`);
+    if (!game) {
+      issues.push(`Row ${index + 2}: invalid Game`);
+      return;
+    }
+    if (!manifestDate) issues.push(`Manifest date missing`);
+
+    validMatches += 1;
+    leagues.set(league, (leagues.get(league) ?? 0) + 1);
+
+    if (!sport) issues.push(`Row ${index + 2}: missing Sport`);
+  });
+
+  const summary = {
+    manifestDate: manifestDate || '(missing)',
+    validMatches,
+    totalLeagues: leagues.size,
+    topLeagues: [...leagues.entries()].sort((a, b) => b[1] - a[1]).slice(0, 10),
+    issuesCount: issues.length
+  };
+
+  console.log(JSON.stringify(summary, null, 2));
+  if (issues.length > 0) {
+    console.log('\nIssues:');
+    issues.slice(0, 50).forEach((issue) => console.log(`- ${issue}`));
+    if (issues.length > 50) console.log(`- ...and ${issues.length - 50} more`);
+    process.exit(1);
+  }
+};
+
+main().catch((error) => {
+  console.error('[validate-monitor] failed:', error instanceof Error ? error.message : String(error));
   process.exit(1);
-}
-
-let manifestDate = '';
-if (fs.existsSync(manifestPath)) {
-  try {
-    const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-    manifestDate = normalizeDate(manifest?.date) || normalizeDate(manifest?.soccerDate);
-  } catch {
-    // keep empty
-  }
-}
-
-const wb = XLSX.read(fs.readFileSync(excelPath), { type: 'buffer', cellDates: true });
-const sh = wb.Sheets['Game list'] ?? wb.Sheets[wb.SheetNames[0]];
-const rows = XLSX.utils.sheet_to_json(sh, { defval: null, raw: false });
-
-const fallbackDate = manifestDate || parseDateFromFilename(excelPath) || todayIso();
-let currentLeague = '';
-let matches = 0;
-let missing = 0;
-const leagues = new Set();
-
-for (const row of rows) {
-  const league = clean(row['League']);
-  if (league) currentLeague = league;
-  const game = parseGame(row['Game']);
-  if (!game) continue;
-
-  const date = normalizeDate(row['Date']) || fallbackDate;
-  matches += 1;
-  leagues.add(currentLeague || 'Unknown League');
-
-  if (!(currentLeague || 'Unknown League') || !game.home || !game.away || !date) {
-    missing += 1;
-  }
-}
-
-console.info('[validate:monitor] excel', {
-  exists: true,
-  matches,
-  leagues: leagues.size,
-  missing,
-  fallbackDate
 });
-
-if (matches === 0) {
-  console.error('[validate:monitor] No matches parsed');
-  process.exit(1);
-}
-
-if (missing > 0) {
-  console.error('[validate:monitor] Missing required fields league/homeTeam/awayTeam/date');
-  process.exit(1);
-}
-
-console.info('[validate:monitor] OK');
-
